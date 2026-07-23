@@ -23,7 +23,9 @@ export type Listing = {
 };
 
 export const AREAS = [
-  "Playa Guiones",
+  "K Section",
+  "Guiones",
+  "NoGu (North Guiones)",
   "Playa Pelada",
   "Centro",
   "Las Huacas",
