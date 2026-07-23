@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { supabase, type Listing, AREAS, BEDROOM_OPTIONS } from "@/lib/supabase";
+import {
+  supabase,
+  type Listing,
+  AREAS,
+  BEDROOM_OPTIONS,
+  timeAgo,
+} from "@/lib/supabase";
 
 export default function Home() {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -203,6 +209,9 @@ export default function Home() {
                 {listing.area} &middot; {listing.bedrooms} bd
                 {listing.furnished ? " · furnished" : ""}
                 {listing.pets_ok ? " · pets ok" : ""}
+              </div>
+              <div className="text-xs text-zinc-400 mt-1">
+                {timeAgo(listing.created_at)}
               </div>
             </div>
           </Link>

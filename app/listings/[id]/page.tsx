@@ -10,6 +10,7 @@ import {
   AMENITIES,
   UTILITIES,
   LEASE_TERMS,
+  timeAgo,
 } from "@/lib/supabase";
 
 export default function ListingDetail() {
@@ -113,6 +114,9 @@ export default function ListingDetail() {
         {listing.furnished ? " · furnished" : ""}
         {listing.pets_ok ? " · pets ok" : ""}
         {leaseTermLabel ? ` · ${leaseTermLabel} lease` : ""}
+      </div>
+      <div className="text-xs text-zinc-400 mt-1">
+        {timeAgo(listing.created_at)}
       </div>
 
       {(checkedAmenities.length > 0 || includedUtilities.length > 0) && (

@@ -43,6 +43,16 @@ export default function RootLayout({
           </div>
         </header>
         <main className="flex-1">{children}</main>
+        <footer className="border-t border-zinc-200 py-6">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <a
+              href="mailto:wdjcr4@gmail.com?subject=Nosara%20Long%20Term%20Rentals%20feedback"
+              className="text-xs text-zinc-400 hover:text-zinc-600 underline"
+            >
+              Questions or suggestions? Contact the admin
+            </a>
+          </div>
+        </footer>
       </body>
     </html>
   );

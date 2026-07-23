@@ -354,13 +354,16 @@ export default function SubmitListing() {
             </div>
           )}
           {photos.length < MAX_PHOTOS && (
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handlePhotoSelect}
-              className="w-full text-sm"
-            />
+            <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100">
+              Add photos
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
+            </label>
           )}
           {photoError && (
             <p className="text-sm text-red-600 mt-1">{photoError}</p>

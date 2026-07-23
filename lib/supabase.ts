@@ -79,6 +79,18 @@ export const LEASE_TERMS = [
   { value: "flexible", label: "Flexible" },
 ] as const;
 
+export function timeAgo(dateStr: string) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+
+  if (diffDay >= 1) return `Posted ${diffDay}d ago`;
+  if (diffHr >= 1) return `Posted ${diffHr}h ago`;
+  if (diffMin >= 1) return `Posted ${diffMin}m ago`;
+  return "Posted just now";
+}
+
 export function whatsAppLink(contact: string) {
   const trimmed = contact.trim();
 
