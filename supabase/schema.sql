@@ -13,6 +13,7 @@ create table if not exists listings (
   photo_url text,
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   source text not null default 'submission',
+  flagged boolean not null default false,
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default (now() + interval '30 days')
 );
@@ -33,3 +34,17 @@ using (status = 'approved' and expires_at > now());
 
 -- Deleting/moderating listings happens via the /admin page, which uses the
 -- service role key (bypasses RLS) rather than a dedicated anon policy.
+
+-- Anyone can flag a listing as suspicious. This runs as a fixed-purpose
+-- function (rather than a general anon UPDATE policy) so the public can
+-- only ever set flagged = true, never touch price/contact/status/etc.
+create or replace function flag_listing(listing_id uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update listings set flagged = true where id = listing_id;
+$$;
+
+grant execute on function flag_listing(uuid) to anon;

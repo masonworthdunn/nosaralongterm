@@ -11,6 +11,12 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState(2000);
   const [bedrooms, setBedrooms] = useState<string>("Any");
   const [area, setArea] = useState<string>("Any");
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+
+  async function handleFlag(id: string) {
+    setFlaggedIds((prev) => new Set(prev).add(id));
+    await supabase.rpc("flag_listing", { listing_id: id });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -134,8 +140,20 @@ export default function Home() {
                 {listing.description}
               </p>
             )}
-            <div className="text-sm text-zinc-500 mt-2">
-              Contact: {listing.contact}
+            <div className="flex justify-between items-end mt-2">
+              <div className="text-sm text-zinc-500">
+                Contact: {listing.contact}
+              </div>
+              {flaggedIds.has(listing.id) ? (
+                <span className="text-xs text-zinc-400">Reported</span>
+              ) : (
+                <button
+                  onClick={() => handleFlag(listing.id)}
+                  className="text-xs text-zinc-400 hover:text-red-600 underline whitespace-nowrap"
+                >
+                  Report as suspicious
+                </button>
+              )}
             </div>
           </div>
         ))}

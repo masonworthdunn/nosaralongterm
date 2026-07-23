@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import type { Listing } from "@/lib/supabase";
 
 export default function AdminPage() {
@@ -41,6 +41,17 @@ export default function AdminPage() {
     e.preventDefault();
     fetchListings(password);
   }
+
+  const sortedListings = useMemo(() => {
+    return [...listings].sort((a, b) => {
+      if (a.flagged !== b.flagged) return a.flagged ? -1 : 1;
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+  }, [listings]);
+
+  const flaggedCount = listings.filter((l) => l.flagged).length;
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this listing? This can't be undone.")) return;
@@ -85,17 +96,25 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold mb-6">
+      <h1 className="text-xl font-semibold mb-1">
         All listings ({listings.length})
       </h1>
+      {flaggedCount > 0 && (
+        <p className="text-sm text-red-600 mb-5">
+          {flaggedCount} flagged as suspicious
+        </p>
+      )}
+      {flaggedCount === 0 && <div className="mb-5" />}
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
       <div className="flex flex-col gap-3">
-        {listings.map((listing) => (
+        {sortedListings.map((listing) => (
           <div
             key={listing.id}
-            className="bg-white border border-zinc-200 rounded-xl p-4 flex justify-between items-start gap-4"
+            className={`bg-white border rounded-xl p-4 flex justify-between items-start gap-4 ${
+              listing.flagged ? "border-red-300" : "border-zinc-200"
+            }`}
           >
             <div>
               <div className="flex items-center gap-2">
@@ -103,6 +122,11 @@ export default function AdminPage() {
                 <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
                   {listing.status}
                 </span>
+                {listing.flagged && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                    Flagged
+                  </span>
+                )}
               </div>
               <div className="text-sm text-zinc-500 mt-1">
                 ${listing.price.toLocaleString()}/mo &middot; {listing.area} &middot;{" "}

@@ -18,6 +18,7 @@ export type Listing = {
   photo_url: string | null;
   status: "pending" | "approved" | "rejected";
   source: string;
+  flagged: boolean;
   created_at: string;
   expires_at: string;
 };
