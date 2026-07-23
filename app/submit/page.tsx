@@ -41,8 +41,7 @@ export default function SubmitListing() {
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <h1 className="text-xl font-semibold mb-2">Thanks!</h1>
         <p className="text-zinc-600">
-          Your listing was submitted and will show up on the site once it&apos;s
-          reviewed.
+          Your listing is live on the site now.
         </p>
       </div>
     );
