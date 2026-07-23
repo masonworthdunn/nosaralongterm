@@ -122,38 +122,48 @@ export default function Home() {
         {filtered.map((listing) => (
           <div
             key={listing.id}
-            className="bg-white border border-zinc-200 rounded-xl p-4"
+            className="bg-white border border-zinc-200 rounded-xl overflow-hidden"
           >
-            <div className="flex justify-between items-baseline gap-4">
-              <span className="font-medium">{listing.title}</span>
-              <span className="font-medium whitespace-nowrap">
-                ${listing.price.toLocaleString()}/mo
-              </span>
-            </div>
-            <div className="text-sm text-zinc-500 mt-1">
-              {listing.area} &middot; {listing.bedrooms} bd
-              {listing.furnished ? " · furnished" : ""}
-              {listing.pets_ok ? " · pets ok" : ""}
-            </div>
-            {listing.description && (
-              <p className="text-sm text-zinc-700 mt-2">
-                {listing.description}
-              </p>
+            {listing.photo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={listing.photo_url}
+                alt={listing.title}
+                className="w-full h-40 object-cover"
+              />
             )}
-            <div className="flex justify-between items-end mt-2">
-              <div className="text-sm text-zinc-500">
-                Contact: {listing.contact}
+            <div className="p-4">
+              <div className="flex justify-between items-baseline gap-4">
+                <span className="font-medium">{listing.title}</span>
+                <span className="font-medium whitespace-nowrap">
+                  ${listing.price.toLocaleString()}/mo
+                </span>
               </div>
-              {flaggedIds.has(listing.id) ? (
-                <span className="text-xs text-zinc-400">Reported</span>
-              ) : (
-                <button
-                  onClick={() => handleFlag(listing.id)}
-                  className="text-xs text-zinc-400 hover:text-red-600 underline whitespace-nowrap"
-                >
-                  Report as suspicious
-                </button>
+              <div className="text-sm text-zinc-500 mt-1">
+                {listing.area} &middot; {listing.bedrooms} bd
+                {listing.furnished ? " · furnished" : ""}
+                {listing.pets_ok ? " · pets ok" : ""}
+              </div>
+              {listing.description && (
+                <p className="text-sm text-zinc-700 mt-2">
+                  {listing.description}
+                </p>
               )}
+              <div className="flex justify-between items-end mt-2">
+                <div className="text-sm text-zinc-500">
+                  Contact: {listing.contact}
+                </div>
+                {flaggedIds.has(listing.id) ? (
+                  <span className="text-xs text-zinc-400">Reported</span>
+                ) : (
+                  <button
+                    onClick={() => handleFlag(listing.id)}
+                    className="text-xs text-zinc-400 hover:text-red-600 underline whitespace-nowrap"
+                  >
+                    Report as suspicious
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
