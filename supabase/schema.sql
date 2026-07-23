@@ -111,3 +111,57 @@ end;
 $$;
 
 grant execute on function delete_own_listing(uuid, uuid) to anon;
+
+-- Same token also lets the submitter edit their own listing later.
+create or replace function update_own_listing(
+  p_listing_id uuid,
+  p_token uuid,
+  p_title text,
+  p_price numeric,
+  p_area text,
+  p_bedrooms text,
+  p_furnished boolean,
+  p_pets_ok boolean,
+  p_description text,
+  p_contact text,
+  p_amenities text[],
+  p_parking_spaces integer,
+  p_utilities_included text[],
+  p_lease_term text,
+  p_photo_urls text[]
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (
+    select 1 from listing_edit_tokens
+    where listing_id = p_listing_id and token = p_token
+  ) then
+    update listings set
+      title = p_title,
+      price = p_price,
+      area = p_area,
+      bedrooms = p_bedrooms,
+      furnished = p_furnished,
+      pets_ok = p_pets_ok,
+      description = p_description,
+      contact = p_contact,
+      amenities = p_amenities,
+      parking_spaces = p_parking_spaces,
+      utilities_included = p_utilities_included,
+      lease_term = p_lease_term,
+      photo_urls = p_photo_urls
+    where id = p_listing_id;
+    return true;
+  end if;
+  return false;
+end;
+$$;
+
+grant execute on function update_own_listing(
+  uuid, uuid, text, numeric, text, text, boolean, boolean, text, text,
+  text[], integer, text[], text, text[]
+) to anon;

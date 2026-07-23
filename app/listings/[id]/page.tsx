@@ -17,7 +17,7 @@ export default function ListingDetail() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const deleteToken = searchParams.get("token");
+  const manageToken = searchParams.get("token");
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [flagged, setFlagged] = useState(false);
@@ -54,7 +54,7 @@ export default function ListingDetail() {
   }
 
   async function handleDelete() {
-    if (!listing || !deleteToken) return;
+    if (!listing || !manageToken) return;
     if (!confirm("Delete this listing? This can't be undone.")) return;
 
     setDeleting(true);
@@ -62,14 +62,14 @@ export default function ListingDetail() {
 
     const { data: success } = await supabase.rpc("delete_own_listing", {
       p_listing_id: listing.id,
-      p_token: deleteToken,
+      p_token: manageToken,
     });
 
     if (success) {
       router.push("/");
     } else {
       setDeleting(false);
-      setDeleteError("That delete link is invalid or already used.");
+      setDeleteError("That manage link is invalid or already used.");
     }
   }
 
@@ -173,18 +173,26 @@ export default function ListingDetail() {
         </p>
       )}
 
-      {deleteToken && (
-        <div className="mt-6 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center justify-between gap-4">
-          <p className="text-sm text-red-700">
-            You have the delete link for this listing.
+      {manageToken && (
+        <div className="mt-6 bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-amber-800">
+            You have the manage link for this listing.
           </p>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="rounded-full border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
-          >
-            {deleting ? "Deleting..." : "Delete listing"}
-          </button>
+          <div className="flex gap-2">
+            <Link
+              href={`/listings/${listing.id}/edit?token=${manageToken}`}
+              className="rounded-full border border-amber-300 text-amber-800 px-4 py-2 text-sm font-medium hover:bg-amber-100 whitespace-nowrap"
+            >
+              Edit
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="rounded-full border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
         </div>
       )}
       {deleteError && (

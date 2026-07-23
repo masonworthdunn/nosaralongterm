@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   supabase,
+  type Listing,
   AREAS,
   BEDROOM_OPTIONS,
   AMENITIES,
@@ -19,30 +21,58 @@ type PendingPhoto = {
   previewUrl: string;
 };
 
-export default function SubmitListing() {
+export default function EditListing() {
+  const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const token = searchParams.get("token");
+
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
-  const [newListingId, setNewListingId] = useState<string | null>(null);
-  const [manageToken, setManageToken] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+
   const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(
     new Set()
   );
   const [selectedUtilities, setSelectedUtilities] = useState<Set<string>>(
     new Set()
   );
-  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
+  const [newPhotos, setNewPhotos] = useState<PendingPhoto[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchListing() {
+      const { data } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("id", params.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+      if (data) {
+        setListing(data);
+        setSelectedAmenities(new Set(data.amenities ?? []));
+        setSelectedUtilities(new Set(data.utilities_included ?? []));
+        setExistingPhotos(data.photo_urls ?? []);
+      }
+      setLoading(false);
+    }
+
+    fetchListing();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
 
   function toggleAmenity(key: string) {
     setSelectedAmenities((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
   }
@@ -50,14 +80,12 @@ export default function SubmitListing() {
   function toggleUtility(key: string) {
     setSelectedUtilities((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
   }
+
+  const totalPhotoCount = existingPhotos.length + newPhotos.length;
 
   function handlePhotoSelect(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -72,17 +100,25 @@ export default function SubmitListing() {
       return;
     }
 
-    setPhotos((prev) => {
-      const combined = [...prev, ...files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }))];
-      if (combined.length > MAX_PHOTOS) {
-        setPhotoError(`Only up to ${MAX_PHOTOS} photos — using the first ${MAX_PHOTOS}.`);
+    setNewPhotos((prev) => {
+      const combined = [
+        ...prev,
+        ...files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) })),
+      ];
+      const room = MAX_PHOTOS - existingPhotos.length;
+      if (combined.length > room) {
+        setPhotoError(`Only up to ${MAX_PHOTOS} photos total.`);
       }
-      return combined.slice(0, MAX_PHOTOS);
+      return combined.slice(0, Math.max(room, 0));
     });
   }
 
-  function removePhoto(index: number) {
-    setPhotos((prev) => {
+  function removeExistingPhoto(index: number) {
+    setExistingPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removeNewPhoto(index: number) {
+    setNewPhotos((prev) => {
       URL.revokeObjectURL(prev[index].previewUrl);
       return prev.filter((_, i) => i !== index);
     });
@@ -91,14 +127,16 @@ export default function SubmitListing() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formEl = e.currentTarget;
+    if (!listing || !token) return;
+
     setSubmitting(true);
     setError(null);
 
-    let photoUrls: string[] = [];
+    let uploadedUrls: string[] = [];
 
-    if (photos.length > 0) {
+    if (newPhotos.length > 0) {
       setUploadingPhotos(true);
-      for (const photo of photos) {
+      for (const photo of newPhotos) {
         const ext = photo.file.name.split(".").pop() || "jpg";
         const path = `${crypto.randomUUID()}.${ext}`;
 
@@ -117,7 +155,7 @@ export default function SubmitListing() {
           .from("listing-photos")
           .getPublicUrl(path);
 
-        photoUrls.push(publicUrlData.publicUrl);
+        uploadedUrls.push(publicUrlData.publicUrl);
       }
       setUploadingPhotos(false);
     }
@@ -125,115 +163,75 @@ export default function SubmitListing() {
     const form = new FormData(formEl);
     const hasParking = selectedAmenities.has("parking");
 
-    const { data, error } = await supabase
-      .from("listings")
-      .insert({
-        title: form.get("title") as string,
-        price: Number(form.get("price")),
-        area: form.get("area") as string,
-        bedrooms: form.get("bedrooms") as string,
-        furnished: form.get("furnished") === "on",
-        pets_ok: form.get("pets_ok") === "on",
-        description: (form.get("description") as string) || null,
-        contact: form.get("contact") as string,
-        amenities: Array.from(selectedAmenities),
-        parking_spaces: hasParking
+    const { data: success, error: rpcError } = await supabase.rpc(
+      "update_own_listing",
+      {
+        p_listing_id: listing.id,
+        p_token: token,
+        p_title: form.get("title") as string,
+        p_price: Number(form.get("price")),
+        p_area: form.get("area") as string,
+        p_bedrooms: form.get("bedrooms") as string,
+        p_furnished: form.get("furnished") === "on",
+        p_pets_ok: form.get("pets_ok") === "on",
+        p_description: (form.get("description") as string) || null,
+        p_contact: form.get("contact") as string,
+        p_amenities: Array.from(selectedAmenities),
+        p_parking_spaces: hasParking
           ? Number(form.get("parking_spaces")) || null
           : null,
-        utilities_included: Array.from(selectedUtilities),
-        lease_term: form.get("lease_term") as string,
-        photo_urls: photoUrls,
-        source: "submission",
-      })
-      .select("id")
-      .single();
+        p_utilities_included: Array.from(selectedUtilities),
+        p_lease_term: form.get("lease_term") as string,
+        p_photo_urls: [...existingPhotos, ...uploadedUrls],
+      }
+    );
 
-    if (error) {
-      setSubmitting(false);
-      setError(error.message);
+    setSubmitting(false);
+
+    if (rpcError || !success) {
+      setError(
+        rpcError?.message ?? "That edit link is invalid or expired."
+      );
       return;
     }
 
-    const { data: token } = await supabase.rpc("create_listing_edit_token", {
-      p_listing_id: data.id,
-    });
-
-    setSubmitting(false);
-    setNewListingId(data.id);
-    setManageToken(token ?? null);
+    router.push(`/listings/${listing.id}?token=${token}`);
   }
 
-  function copyManageLink() {
-    if (!newListingId || !manageToken) return;
-    const url = `${window.location.origin}/listings/${newListingId}?token=${manageToken}`;
-    navigator.clipboard.writeText(url);
-    setLinkCopied(true);
-  }
-
-  if (newListingId) {
-    const manageUrl = manageToken
-      ? `/listings/${newListingId}?token=${manageToken}`
-      : `/listings/${newListingId}`;
-
+  if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold mb-2">Thanks!</h1>
-        <p className="text-zinc-600 mb-6">
-          Your listing is live on the site now.
+        <p className="text-sm text-zinc-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!listing || !token) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <p className="text-sm text-zinc-500">
+          This edit link is invalid or the listing no longer exists.
         </p>
-
-        {manageToken && (
-          <div className="bg-white border border-zinc-200 rounded-xl p-4 mb-6 text-left">
-            <p className="text-sm font-medium mb-1">
-              Save this link to edit or delete your listing later
-            </p>
-            <p className="text-xs text-zinc-500 mb-3">
-              There are no accounts on this site, so this link is the only
-              way to manage your listing before it expires. Bookmark it or
-              copy it somewhere safe.
-            </p>
-            <button
-              type="button"
-              onClick={copyManageLink}
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100"
-            >
-              {linkCopied ? "Copied!" : "Copy manage link"}
-            </button>
-          </div>
-        )}
-
-        <div className="flex justify-center gap-3">
-          <Link
-            href={manageUrl}
-            className="rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium"
-          >
-            View your listing
-          </Link>
-          <Link
-            href="/"
-            className="rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-medium"
-          >
-            Back to listings
-          </Link>
-        </div>
+        <Link
+          href="/"
+          className="text-sm text-zinc-900 underline mt-2 inline-block"
+        >
+          Back to listings
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold mb-1">Submit a listing</h1>
-      <p className="text-xs text-zinc-400 mb-6">
-        Your listing goes live immediately and stays up for 30 days, then
-        automatically expires — you can always resubmit.
-      </p>
+      <h1 className="text-xl font-semibold mb-6">Edit your listing</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
           <input
             name="title"
             required
-            placeholder="2br casita near Guiones beach"
+            defaultValue={listing.title}
             className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
@@ -247,6 +245,7 @@ export default function SubmitListing() {
             type="number"
             min={0}
             required
+            defaultValue={listing.price}
             className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
@@ -257,12 +256,9 @@ export default function SubmitListing() {
             <select
               name="area"
               required
-              defaultValue=""
+              defaultValue={listing.area}
               className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
             >
-              <option value="" disabled>
-                Select an area
-              </option>
               {AREAS.map((a) => (
                 <option key={a}>{a}</option>
               ))}
@@ -274,12 +270,9 @@ export default function SubmitListing() {
             <select
               name="bedrooms"
               required
-              defaultValue=""
+              defaultValue={listing.bedrooms}
               className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
             >
-              <option value="" disabled>
-                Select
-              </option>
               {BEDROOM_OPTIONS.map((b) => (
                 <option key={b}>{b}</option>
               ))}
@@ -289,11 +282,19 @@ export default function SubmitListing() {
 
         <div className="flex gap-6">
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="furnished" />
+            <input
+              type="checkbox"
+              name="furnished"
+              defaultChecked={listing.furnished}
+            />
             Furnished
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="pets_ok" />
+            <input
+              type="checkbox"
+              name="pets_ok"
+              defaultChecked={listing.pets_ok}
+            />
             Pets ok
           </label>
         </div>
@@ -305,7 +306,7 @@ export default function SubmitListing() {
           <select
             name="lease_term"
             required
-            defaultValue="flexible"
+            defaultValue={listing.lease_term}
             className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
           >
             {LEASE_TERMS.map((t) => (
@@ -318,8 +319,7 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Amenities — check anything that applies. The more info you give,
-            the fewer questions renters will need to ask.
+            Amenities
           </label>
           <div className="grid grid-cols-2 gap-2">
             {AMENITIES.map((a) => (
@@ -342,7 +342,7 @@ export default function SubmitListing() {
                 name="parking_spaces"
                 type="number"
                 min={1}
-                defaultValue={1}
+                defaultValue={listing.parking_spaces ?? 1}
                 className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
               />
             </div>
@@ -351,7 +351,7 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Utilities included in rent — check any that are covered
+            Utilities included in rent
           </label>
           <div className="grid grid-cols-2 gap-2">
             {UTILITIES.map((u) => (
@@ -371,19 +371,37 @@ export default function SubmitListing() {
           <label className="block text-sm font-medium mb-1">
             Photos (up to {MAX_PHOTOS})
           </label>
-          {photos.length > 0 && (
+          {(existingPhotos.length > 0 || newPhotos.length > 0) && (
             <div className="flex gap-2 mb-2 overflow-x-auto">
-              {photos.map((photo, i) => (
-                <div key={i} className="relative shrink-0">
+              {existingPhotos.map((url, i) => (
+                <div key={`existing-${i}`} className="relative shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={photo.previewUrl}
-                    alt={`Selected photo ${i + 1}`}
+                    src={url}
+                    alt={`Existing photo ${i + 1}`}
                     className="w-16 h-16 rounded-md object-cover"
                   />
                   <button
                     type="button"
-                    onClick={() => removePhoto(i)}
+                    onClick={() => removeExistingPhoto(i)}
+                    aria-label="Remove photo"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-zinc-900 text-white text-xs flex items-center justify-center"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+              {newPhotos.map((photo, i) => (
+                <div key={`new-${i}`} className="relative shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.previewUrl}
+                    alt={`New photo ${i + 1}`}
+                    className="w-16 h-16 rounded-md object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeNewPhoto(i)}
                     aria-label="Remove photo"
                     className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-zinc-900 text-white text-xs flex items-center justify-center"
                   >
@@ -393,7 +411,7 @@ export default function SubmitListing() {
               ))}
             </div>
           )}
-          {photos.length < MAX_PHOTOS && (
+          {totalPhotoCount < MAX_PHOTOS && (
             <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100">
               Add photos
               <input
@@ -417,6 +435,7 @@ export default function SubmitListing() {
           <textarea
             name="description"
             rows={3}
+            defaultValue={listing.description ?? ""}
             className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
@@ -428,24 +447,32 @@ export default function SubmitListing() {
           <input
             name="contact"
             required
-            placeholder="+506 8888 8888"
+            defaultValue={listing.contact}
             className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-2 rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-50"
-        >
-          {uploadingPhotos
-            ? "Uploading photos..."
-            : submitting
-              ? "Submitting..."
-              : "Submit listing"}
-        </button>
+        <div className="flex gap-3 mt-2">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-50"
+          >
+            {uploadingPhotos
+              ? "Uploading photos..."
+              : submitting
+                ? "Saving..."
+                : "Save changes"}
+          </button>
+          <Link
+            href={`/listings/${listing.id}?token=${token}`}
+            className="rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-medium"
+          >
+            Cancel
+          </Link>
+        </div>
       </form>
     </div>
   );
