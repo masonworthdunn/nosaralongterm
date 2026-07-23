@@ -62,3 +62,52 @@ create policy "anyone can upload listing photos"
 on storage.objects for insert
 to anon
 with check (bucket_id = 'listing-photos');
+
+-- Lets a submitter delete their own listing later without an account.
+-- Tokens live in their own table with NO anon read policy at all, so
+-- they can never leak through a stray select("*") on listings. The
+-- only way in or out is through these two locked-down functions.
+create table if not exists listing_edit_tokens (
+  listing_id uuid primary key references listings(id) on delete cascade,
+  token uuid not null default gen_random_uuid()
+);
+
+alter table listing_edit_tokens enable row level security;
+
+create or replace function create_listing_edit_token(p_listing_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_token uuid;
+begin
+  insert into listing_edit_tokens (listing_id)
+  values (p_listing_id)
+  returning token into v_token;
+  return v_token;
+end;
+$$;
+
+grant execute on function create_listing_edit_token(uuid) to anon;
+
+create or replace function delete_own_listing(p_listing_id uuid, p_token uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (
+    select 1 from listing_edit_tokens
+    where listing_id = p_listing_id and token = p_token
+  ) then
+    delete from listings where id = p_listing_id;
+    return true;
+  end if;
+  return false;
+end;
+$$;
+
+grant execute on function delete_own_listing(uuid, uuid) to anon;

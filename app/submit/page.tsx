@@ -23,6 +23,8 @@ export default function SubmitListing() {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [newListingId, setNewListingId] = useState<string | null>(null);
+  const [deleteToken, setDeleteToken] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(
@@ -146,25 +148,63 @@ export default function SubmitListing() {
       .select("id")
       .single();
 
-    setSubmitting(false);
-
     if (error) {
+      setSubmitting(false);
       setError(error.message);
-    } else {
-      setNewListingId(data.id);
+      return;
     }
+
+    const { data: token } = await supabase.rpc("create_listing_edit_token", {
+      p_listing_id: data.id,
+    });
+
+    setSubmitting(false);
+    setNewListingId(data.id);
+    setDeleteToken(token ?? null);
+  }
+
+  function copyDeleteLink() {
+    if (!newListingId || !deleteToken) return;
+    const url = `${window.location.origin}/listings/${newListingId}?token=${deleteToken}`;
+    navigator.clipboard.writeText(url);
+    setLinkCopied(true);
   }
 
   if (newListingId) {
+    const manageUrl = deleteToken
+      ? `/listings/${newListingId}?token=${deleteToken}`
+      : `/listings/${newListingId}`;
+
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <h1 className="text-xl font-semibold mb-2">Thanks!</h1>
         <p className="text-zinc-600 mb-6">
           Your listing is live on the site now.
         </p>
+
+        {deleteToken && (
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 mb-6 text-left">
+            <p className="text-sm font-medium mb-1">
+              Save this link to delete your listing later
+            </p>
+            <p className="text-xs text-zinc-500 mb-3">
+              There are no accounts on this site, so this link is the only
+              way to remove your listing before it expires. Bookmark it or
+              copy it somewhere safe.
+            </p>
+            <button
+              type="button"
+              onClick={copyDeleteLink}
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+            >
+              {linkCopied ? "Copied!" : "Copy delete link"}
+            </button>
+          </div>
+        )}
+
         <div className="flex justify-center gap-3">
           <Link
-            href={`/listings/${newListingId}`}
+            href={manageUrl}
             className="rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium"
           >
             View your listing

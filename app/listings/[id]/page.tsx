@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   supabase,
@@ -15,9 +15,14 @@ import {
 
 export default function ListingDetail() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const deleteToken = searchParams.get("token");
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [flagged, setFlagged] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +51,26 @@ export default function ListingDetail() {
     if (!listing) return;
     setFlagged(true);
     await supabase.rpc("flag_listing", { listing_id: listing.id });
+  }
+
+  async function handleDelete() {
+    if (!listing || !deleteToken) return;
+    if (!confirm("Delete this listing? This can't be undone.")) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+
+    const { data: success } = await supabase.rpc("delete_own_listing", {
+      p_listing_id: listing.id,
+      p_token: deleteToken,
+    });
+
+    if (success) {
+      router.push("/");
+    } else {
+      setDeleting(false);
+      setDeleteError("That delete link is invalid or already used.");
+    }
   }
 
   if (loading) {
@@ -146,6 +171,24 @@ export default function ListingDetail() {
         <p className="text-sm text-zinc-700 mt-4 whitespace-pre-line">
           {listing.description}
         </p>
+      )}
+
+      {deleteToken && (
+        <div className="mt-6 bg-red-50 border border-red-100 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-red-700">
+            You have the delete link for this listing.
+          </p>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded-full border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+          >
+            {deleting ? "Deleting..." : "Delete listing"}
+          </button>
+        </div>
+      )}
+      {deleteError && (
+        <p className="text-sm text-red-600 mt-2">{deleteError}</p>
       )}
 
       <div className="mt-6 flex items-center justify-between">
