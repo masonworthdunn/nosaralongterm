@@ -25,9 +25,19 @@ export type Listing = {
 export const AREAS = [
   "Playa Guiones",
   "Playa Pelada",
-  "Bocas de Nosara / Centro",
+  "Centro",
   "Las Huacas",
   "Garza",
+  "Santa Marta",
+  "Rio Montaña",
+  "Arenales",
+  "Santa Teresita",
+  "San Pedro",
+  "Los Angeles",
+  "Esperanza",
+  "Delicias",
+  "D Section",
+  "L Section",
   "Other",
 ] as const;
 
