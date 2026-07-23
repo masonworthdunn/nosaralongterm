@@ -1,22 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
   supabase,
   AREAS,
   BEDROOM_OPTIONS,
   AMENITIES,
+  UTILITIES,
   LEASE_TERMS,
 } from "@/lib/supabase";
 
+const MAX_PHOTOS = 6;
+const MAX_PHOTO_SIZE = 8 * 1024 * 1024; // 8MB
+
+type PendingPhoto = {
+  file: File;
+  previewUrl: string;
+};
+
 export default function SubmitListing() {
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [newListingId, setNewListingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(
     new Set()
   );
+  const [selectedUtilities, setSelectedUtilities] = useState<Set<string>>(
+    new Set()
+  );
+  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
 
   function toggleAmenity(key: string) {
     setSelectedAmenities((prev) => {
@@ -30,12 +45,82 @@ export default function SubmitListing() {
     });
   }
 
+  function toggleUtility(key: string) {
+    setSelectedUtilities((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  function handlePhotoSelect(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
+
+    setPhotoError(null);
+
+    const tooBig = files.find((f) => f.size > MAX_PHOTO_SIZE);
+    if (tooBig) {
+      setPhotoError(`${tooBig.name} is over 8MB — pick a smaller photo.`);
+      return;
+    }
+
+    setPhotos((prev) => {
+      const combined = [...prev, ...files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }))];
+      if (combined.length > MAX_PHOTOS) {
+        setPhotoError(`Only up to ${MAX_PHOTOS} photos — using the first ${MAX_PHOTOS}.`);
+      }
+      return combined.slice(0, MAX_PHOTOS);
+    });
+  }
+
+  function removePhoto(index: number) {
+    setPhotos((prev) => {
+      URL.revokeObjectURL(prev[index].previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const formEl = e.currentTarget;
     setSubmitting(true);
     setError(null);
 
-    const form = new FormData(e.currentTarget);
+    let photoUrls: string[] = [];
+
+    if (photos.length > 0) {
+      setUploadingPhotos(true);
+      for (const photo of photos) {
+        const ext = photo.file.name.split(".").pop() || "jpg";
+        const path = `${crypto.randomUUID()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("listing-photos")
+          .upload(path, photo.file);
+
+        if (uploadError) {
+          setUploadingPhotos(false);
+          setSubmitting(false);
+          setError(`Couldn't upload a photo: ${uploadError.message}`);
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("listing-photos")
+          .getPublicUrl(path);
+
+        photoUrls.push(publicUrlData.publicUrl);
+      }
+      setUploadingPhotos(false);
+    }
+
+    const form = new FormData(formEl);
     const hasParking = selectedAmenities.has("parking");
 
     const { data, error } = await supabase
@@ -53,7 +138,9 @@ export default function SubmitListing() {
         parking_spaces: hasParking
           ? Number(form.get("parking_spaces")) || null
           : null,
+        utilities_included: Array.from(selectedUtilities),
         lease_term: form.get("lease_term") as string,
+        photo_urls: photoUrls,
         source: "submission",
       })
       .select("id")
@@ -95,7 +182,11 @@ export default function SubmitListing() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold mb-6">Submit a listing</h1>
+      <h1 className="text-xl font-semibold mb-1">Submit a listing</h1>
+      <p className="text-xs text-zinc-400 mb-6">
+        Your listing goes live immediately and stays up for 30 days, then
+        automatically expires — you can always resubmit.
+      </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
@@ -192,10 +283,7 @@ export default function SubmitListing() {
           </label>
           <div className="grid grid-cols-2 gap-2">
             {AMENITIES.map((a) => (
-              <label
-                key={a.key}
-                className="flex items-center gap-2 text-sm"
-              >
+              <label key={a.key} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={selectedAmenities.has(a.key)}
@@ -218,6 +306,64 @@ export default function SubmitListing() {
                 className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
               />
             </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Utilities included in rent — check any that are covered
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {UTILITIES.map((u) => (
+              <label key={u.key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selectedUtilities.has(u.key)}
+                  onChange={() => toggleUtility(u.key)}
+                />
+                {u.label}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Photos (up to {MAX_PHOTOS})
+          </label>
+          {photos.length > 0 && (
+            <div className="flex gap-2 mb-2 overflow-x-auto">
+              {photos.map((photo, i) => (
+                <div key={i} className="relative shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.previewUrl}
+                    alt={`Selected photo ${i + 1}`}
+                    className="w-16 h-16 rounded-md object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    aria-label="Remove photo"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-zinc-900 text-white text-xs flex items-center justify-center"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {photos.length < MAX_PHOTOS && (
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoSelect}
+              className="w-full text-sm"
+            />
+          )}
+          {photoError && (
+            <p className="text-sm text-red-600 mt-1">{photoError}</p>
           )}
         </div>
 
@@ -251,7 +397,11 @@ export default function SubmitListing() {
           disabled={submitting}
           className="mt-2 rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-50"
         >
-          {submitting ? "Submitting..." : "Submit listing"}
+          {uploadingPhotos
+            ? "Uploading photos..."
+            : submitting
+              ? "Submitting..."
+              : "Submit listing"}
         </button>
       </form>
     </div>

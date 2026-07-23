@@ -13,6 +13,17 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState(2000);
   const [bedrooms, setBedrooms] = useState<string>("Any");
   const [area, setArea] = useState<string>("Any");
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+
+  async function handleFlag(
+    e: React.MouseEvent<HTMLButtonElement>,
+    id: string
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    setFlaggedIds((prev) => new Set(prev).add(id));
+    await supabase.rpc("flag_listing", { listing_id: id });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +129,11 @@ export default function Home() {
         </div>
       </div>
 
+      <p className="text-xs text-zinc-400 mb-4">
+        Listings automatically expire after 30 days. See something off? Flag
+        it — flagged listings get reviewed and removed if needed.
+      </p>
+
       {loading && <p className="text-sm text-zinc-500">Loading listings...</p>}
       {error && (
         <p className="text-sm text-red-600">
@@ -135,17 +151,43 @@ export default function Home() {
           <Link
             key={listing.id}
             href={`/listings/${listing.id}`}
-            className="bg-white border border-zinc-200 rounded-xl overflow-hidden hover:border-zinc-300 hover:bg-zinc-50"
+            className="relative bg-white border border-zinc-200 rounded-xl overflow-hidden hover:border-zinc-300 hover:bg-zinc-50"
           >
+            <button
+              onClick={(e) => handleFlag(e, listing.id)}
+              disabled={flaggedIds.has(listing.id)}
+              title={
+                flaggedIds.has(listing.id)
+                  ? "Reported"
+                  : "Report as suspicious"
+              }
+              aria-label="Report as suspicious"
+              className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-red-600 disabled:text-red-500 disabled:hover:text-red-500"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4"
+              >
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+
             {listing.photo_urls?.length > 0 && (
-              <div className="grid grid-cols-3 gap-0.5">
+              <div className="flex gap-0.5 p-2 pb-0">
                 {listing.photo_urls.slice(0, 6).map((url, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={i}
                     src={url}
                     alt={listing.title}
-                    className="w-full aspect-square object-cover"
+                    className="w-14 h-14 rounded-md object-cover shrink-0"
                   />
                 ))}
               </div>

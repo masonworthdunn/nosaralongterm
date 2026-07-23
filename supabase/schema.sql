@@ -13,6 +13,7 @@ create table if not exists listings (
   photo_urls text[] not null default '{}',
   amenities text[] not null default '{}',
   parking_spaces integer,
+  utilities_included text[] not null default '{}',
   lease_term text not null default 'flexible' check (lease_term in ('3mo', '6mo', '12mo', 'flexible')),
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   source text not null default 'submission',
@@ -51,3 +52,13 @@ as $$
 $$;
 
 grant execute on function flag_listing(uuid) to anon;
+
+-- Public bucket for listing photos, uploaded directly by submitters
+insert into storage.buckets (id, name, public)
+values ('listing-photos', 'listing-photos', true)
+on conflict (id) do nothing;
+
+create policy "anyone can upload listing photos"
+on storage.objects for insert
+to anon
+with check (bucket_id = 'listing-photos');

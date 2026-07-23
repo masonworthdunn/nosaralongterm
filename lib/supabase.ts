@@ -18,6 +18,7 @@ export type Listing = {
   photo_urls: string[];
   amenities: string[];
   parking_spaces: number | null;
+  utilities_included: string[];
   lease_term: string;
   status: "pending" | "approved" | "rejected";
   source: string;
@@ -60,8 +61,15 @@ export const AMENITIES = [
   { key: "hot_water", label: "Hot water" },
   { key: "water_tank", label: "Backup water tank" },
   { key: "pool", label: "Pool" },
-  { key: "utilities_included", label: "Utilities included" },
   { key: "generator", label: "Backup power / generator" },
+] as const;
+
+export const UTILITIES = [
+  { key: "electricity", label: "Electricity" },
+  { key: "water", label: "Water" },
+  { key: "gas", label: "Gas" },
+  { key: "trash", label: "Trash" },
+  { key: "wifi", label: "Wifi/Internet" },
 ] as const;
 
 export const LEASE_TERMS = [

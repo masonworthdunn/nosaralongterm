@@ -8,6 +8,7 @@ import {
   type Listing,
   whatsAppLink,
   AMENITIES,
+  UTILITIES,
   LEASE_TERMS,
 } from "@/lib/supabase";
 
@@ -77,6 +78,9 @@ export default function ListingDetail() {
   const checkedAmenities = AMENITIES.filter((a) =>
     listing.amenities?.includes(a.key)
   );
+  const includedUtilities = UTILITIES.filter((u) =>
+    listing.utilities_included?.includes(u.key)
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -85,14 +89,14 @@ export default function ListingDetail() {
       </Link>
 
       {listing.photo_urls?.length > 0 && (
-        <div className="grid grid-cols-3 gap-1 mt-4 rounded-xl overflow-hidden">
+        <div className="flex gap-1 mt-4 overflow-x-auto">
           {listing.photo_urls.slice(0, 6).map((url, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={i}
               src={url}
               alt={`${listing.title} photo ${i + 1}`}
-              className="w-full aspect-square object-cover"
+              className="w-24 h-24 rounded-lg object-cover shrink-0"
             />
           ))}
         </div>
@@ -111,7 +115,7 @@ export default function ListingDetail() {
         {leaseTermLabel ? ` · ${leaseTermLabel} lease` : ""}
       </div>
 
-      {checkedAmenities.length > 0 && (
+      {(checkedAmenities.length > 0 || includedUtilities.length > 0) && (
         <div className="flex flex-wrap gap-2 mt-4">
           {checkedAmenities.map((a) => (
             <span
@@ -121,6 +125,14 @@ export default function ListingDetail() {
               {a.key === "parking" && listing.parking_spaces
                 ? `Parking (${listing.parking_spaces})`
                 : a.label}
+            </span>
+          ))}
+          {includedUtilities.map((u) => (
+            <span
+              key={u.key}
+              className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700"
+            >
+              {u.label} included
             </span>
           ))}
         </div>
