@@ -79,13 +79,13 @@ export default function AdminPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             autoFocus
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-50"
+            className="rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium disabled:opacity-50"
           >
             {loading ? "Checking..." : "Log in"}
           </button>
@@ -100,24 +100,24 @@ export default function AdminPage() {
         All listings ({listings.length})
       </h1>
       {flaggedCount > 0 && (
-        <p className="text-sm text-red-600 mb-5">
+        <p className="text-sm text-red-600 dark:text-red-400 mb-5">
           {flaggedCount} flagged as suspicious
         </p>
       )}
       {flaggedCount === 0 && <div className="mb-5" />}
 
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>}
 
       <div className="flex flex-col gap-3">
         {sortedListings.map((listing) => (
           <div
             key={listing.id}
-            className={`bg-white border rounded-xl p-4 flex justify-between items-start gap-4 ${
-              listing.flagged ? "border-red-300" : "border-zinc-200"
+            className={`bg-white dark:bg-zinc-900 border rounded-xl p-4 flex justify-between items-start gap-4 ${
+              listing.flagged ? "border-red-300 dark:border-red-800" : "border-zinc-200 dark:border-zinc-800"
             }`}
           >
             <div className="flex gap-3">
-              <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-zinc-100">
+              <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 {listing.photo_urls?.[0] && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -130,20 +130,20 @@ export default function AdminPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{listing.title}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
                     {listing.status}
                   </span>
                   {listing.flagged && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300">
                       Flagged
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-zinc-500 mt-1">
+                <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                   ${listing.price.toLocaleString()}/mo &middot; {listing.area} &middot;{" "}
                   {listing.bedrooms} bd
                 </div>
-                <div className="text-sm text-zinc-500 mt-1">
+                <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                   Contact:{" "}
                   {whatsAppLink(listing.contact) ? (
                     <a
@@ -158,7 +158,7 @@ export default function AdminPage() {
                     listing.contact
                   )}
                 </div>
-                <div className="text-xs text-zinc-400 mt-1">
+                <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                   Submitted {new Date(listing.created_at).toLocaleDateString()} &middot;
                   Expires {new Date(listing.expires_at).toLocaleDateString()}
                 </div>
@@ -166,14 +166,14 @@ export default function AdminPage() {
             </div>
             <button
               onClick={() => handleDelete(listing.id)}
-              className="text-sm text-red-600 border border-red-200 rounded-full px-3 py-1.5 hover:bg-red-50 whitespace-nowrap"
+              className="text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-full px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-950 whitespace-nowrap"
             >
               Delete
             </button>
           </div>
         ))}
         {listings.length === 0 && (
-          <p className="text-sm text-zinc-500">No listings yet.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">No listings yet.</p>
         )}
       </div>
     </div>

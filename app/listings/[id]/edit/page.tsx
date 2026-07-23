@@ -201,7 +201,7 @@ export default function EditListing() {
   if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <p className="text-sm text-zinc-500">Loading...</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</p>
       </div>
     );
   }
@@ -209,12 +209,12 @@ export default function EditListing() {
   if (!listing || !token) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           This edit link is invalid or the listing no longer exists.
         </p>
         <Link
           href="/"
-          className="text-sm text-zinc-900 underline mt-2 inline-block"
+          className="text-sm text-zinc-900 dark:text-zinc-100 underline mt-2 inline-block"
         >
           Back to listings
         </Link>
@@ -232,7 +232,7 @@ export default function EditListing() {
             name="title"
             required
             defaultValue={listing.title}
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
@@ -246,7 +246,7 @@ export default function EditListing() {
             min={0}
             required
             defaultValue={listing.price}
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
@@ -257,7 +257,7 @@ export default function EditListing() {
               name="area"
               required
               defaultValue={listing.area}
-              className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               {AREAS.map((a) => (
                 <option key={a}>{a}</option>
@@ -271,7 +271,7 @@ export default function EditListing() {
               name="bedrooms"
               required
               defaultValue={listing.bedrooms}
-              className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               {BEDROOM_OPTIONS.map((b) => (
                 <option key={b}>{b}</option>
@@ -307,7 +307,7 @@ export default function EditListing() {
             name="lease_term"
             required
             defaultValue={listing.lease_term}
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           >
             {LEASE_TERMS.map((t) => (
               <option key={t.value} value={t.value}>
@@ -343,7 +343,7 @@ export default function EditListing() {
                 type="number"
                 min={1}
                 defaultValue={listing.parking_spaces ?? 1}
-                className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -412,7 +412,7 @@ export default function EditListing() {
             </div>
           )}
           {totalPhotoCount < MAX_PHOTOS && (
-            <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100">
+            <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
               Add photos
               <input
                 type="file"
@@ -424,7 +424,7 @@ export default function EditListing() {
             </label>
           )}
           {photoError && (
-            <p className="text-sm text-red-600 mt-1">{photoError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 mt-1">{photoError}</p>
           )}
         </div>
 
@@ -436,7 +436,7 @@ export default function EditListing() {
             name="description"
             rows={3}
             defaultValue={listing.description ?? ""}
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
@@ -448,17 +448,17 @@ export default function EditListing() {
             name="contact"
             required
             defaultValue={listing.contact}
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <div className="flex gap-3 mt-2">
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-50"
+            className="flex-1 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium disabled:opacity-50"
           >
             {uploadingPhotos
               ? "Uploading photos..."
@@ -468,7 +468,7 @@ export default function EditListing() {
           </button>
           <Link
             href={`/listings/${listing.id}?token=${token}`}
-            className="rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-medium"
+            className="rounded-full border border-zinc-300 dark:border-zinc-700 px-5 py-2.5 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             Cancel
           </Link>

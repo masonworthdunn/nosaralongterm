@@ -23,6 +23,7 @@ export default function ListingDetail() {
   const [flagged, setFlagged] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +47,27 @@ export default function ListingDetail() {
       cancelled = true;
     };
   }, [params.id]);
+
+  useEffect(() => {
+    if (lightboxIndex === null || !listing) return;
+
+    function handleKeydown(e: KeyboardEvent) {
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((i) => (i !== null && i > 0 ? i - 1 : i));
+      }
+      if (e.key === "ArrowRight") {
+        setLightboxIndex((i) =>
+          i !== null && listing && i < listing.photo_urls.length - 1
+            ? i + 1
+            : i
+        );
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [lightboxIndex, listing]);
 
   async function handleFlag() {
     if (!listing) return;
@@ -76,7 +98,7 @@ export default function ListingDetail() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <p className="text-sm text-zinc-500">Loading...</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</p>
       </div>
     );
   }
@@ -84,12 +106,12 @@ export default function ListingDetail() {
   if (!listing) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           This listing isn&apos;t available anymore.
         </p>
         <Link
           href="/"
-          className="text-sm text-zinc-900 underline mt-2 inline-block"
+          className="text-sm text-zinc-900 dark:text-zinc-100 underline mt-2 inline-block"
         >
           Back to listings
         </Link>
@@ -110,7 +132,10 @@ export default function ListingDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-900">
+      <Link
+        href="/"
+        className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+      >
         &larr; Back to listings
       </Link>
 
@@ -122,9 +147,63 @@ export default function ListingDetail() {
               key={i}
               src={url}
               alt={`${listing.title} photo ${i + 1}`}
-              className="w-24 h-24 rounded-lg object-cover shrink-0"
+              onClick={() => setLightboxIndex(i)}
+              className="w-24 h-24 rounded-lg object-cover shrink-0 cursor-zoom-in"
             />
           ))}
+        </div>
+      )}
+
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            onClick={() => setLightboxIndex(null)}
+            aria-label="Close"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white text-xl flex items-center justify-center hover:bg-white/20"
+          >
+            &times;
+          </button>
+
+          {lightboxIndex > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((i) => (i !== null ? i - 1 : i));
+              }}
+              aria-label="Previous photo"
+              className="absolute left-2 sm:left-4 w-10 h-10 rounded-full bg-white/10 text-white text-2xl flex items-center justify-center hover:bg-white/20"
+            >
+              &#8249;
+            </button>
+          )}
+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={listing.photo_urls[lightboxIndex]}
+            alt={`${listing.title} photo ${lightboxIndex + 1}`}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+          />
+
+          {lightboxIndex < listing.photo_urls.length - 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((i) => (i !== null ? i + 1 : i));
+              }}
+              aria-label="Next photo"
+              className="absolute right-2 sm:right-4 w-10 h-10 rounded-full bg-white/10 text-white text-2xl flex items-center justify-center hover:bg-white/20"
+            >
+              &#8250;
+            </button>
+          )}
+
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {lightboxIndex + 1} / {listing.photo_urls.length}
+          </div>
         </div>
       )}
 
@@ -134,13 +213,13 @@ export default function ListingDetail() {
           ${listing.price.toLocaleString()}/mo
         </span>
       </div>
-      <div className="text-sm text-zinc-500 mt-1">
+      <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
         {listing.area} &middot; {listing.bedrooms} bd
         {listing.furnished ? " · furnished" : ""}
         {listing.pets_ok ? " · pets ok" : ""}
         {leaseTermLabel ? ` · ${leaseTermLabel} lease` : ""}
       </div>
-      <div className="text-xs text-zinc-400 mt-1">
+      <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
         {timeAgo(listing.created_at)}
       </div>
 
@@ -149,7 +228,7 @@ export default function ListingDetail() {
           {checkedAmenities.map((a) => (
             <span
               key={a.key}
-              className="text-xs px-2 py-1 rounded-full bg-zinc-100 text-zinc-700"
+              className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
             >
               {a.key === "parking" && listing.parking_spaces
                 ? `Parking (${listing.parking_spaces})`
@@ -159,7 +238,7 @@ export default function ListingDetail() {
           {includedUtilities.map((u) => (
             <span
               key={u.key}
-              className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700"
+              className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300"
             >
               {u.label} included
             </span>
@@ -168,27 +247,27 @@ export default function ListingDetail() {
       )}
 
       {listing.description && (
-        <p className="text-sm text-zinc-700 mt-4 whitespace-pre-line">
+        <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-4 whitespace-pre-line">
           {listing.description}
         </p>
       )}
 
       {manageToken && (
-        <div className="mt-6 bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center justify-between gap-4">
-          <p className="text-sm text-amber-800">
+        <div className="mt-6 bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-amber-800 dark:text-amber-200">
             You have the manage link for this listing.
           </p>
           <div className="flex gap-2">
             <Link
               href={`/listings/${listing.id}/edit?token=${manageToken}`}
-              className="rounded-full border border-amber-300 text-amber-800 px-4 py-2 text-sm font-medium hover:bg-amber-100 whitespace-nowrap"
+              className="rounded-full border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 px-4 py-2 text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-900 whitespace-nowrap"
             >
               Edit
             </Link>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="rounded-full border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+              className="rounded-full border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-2 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900 disabled:opacity-50 whitespace-nowrap"
             >
               {deleting ? "Deleting..." : "Delete"}
             </button>
@@ -196,7 +275,9 @@ export default function ListingDetail() {
         </div>
       )}
       {deleteError && (
-        <p className="text-sm text-red-600 mt-2">{deleteError}</p>
+        <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+          {deleteError}
+        </p>
       )}
 
       <div className="mt-6 flex items-center justify-between">
@@ -205,22 +286,24 @@ export default function ListingDetail() {
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium"
+            className="rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium"
           >
             Message on WhatsApp
           </a>
         ) : (
-          <span className="text-sm text-zinc-500">
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
             Contact: {listing.contact}
           </span>
         )}
 
         {flagged ? (
-          <span className="text-xs text-zinc-400">Reported</span>
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            Reported
+          </span>
         ) : (
           <button
             onClick={handleFlag}
-            className="text-xs text-zinc-400 hover:text-red-600 underline"
+            className="text-xs text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 underline"
           >
             Report as suspicious
           </button>

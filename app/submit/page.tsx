@@ -178,16 +178,16 @@ export default function SubmitListing() {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <h1 className="text-xl font-semibold mb-2">Thanks!</h1>
-        <p className="text-zinc-600 mb-6">
+        <p className="text-zinc-600 dark:text-zinc-400 mb-6">
           Your listing is live on the site now.
         </p>
 
         {manageToken && (
-          <div className="bg-white border border-zinc-200 rounded-xl p-4 mb-6 text-left">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 mb-6 text-left">
             <p className="text-sm font-medium mb-1">
               Save this link to edit or delete your listing later
             </p>
-            <p className="text-xs text-zinc-500 mb-3">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
               There are no accounts on this site, so this link is the only
               way to manage your listing before it expires. Bookmark it or
               copy it somewhere safe.
@@ -195,7 +195,7 @@ export default function SubmitListing() {
             <button
               type="button"
               onClick={copyManageLink}
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+              className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               {linkCopied ? "Copied!" : "Copy manage link"}
             </button>
@@ -205,13 +205,13 @@ export default function SubmitListing() {
         <div className="flex justify-center gap-3">
           <Link
             href={manageUrl}
-            className="rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium"
+            className="rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium"
           >
             View your listing
           </Link>
           <Link
             href="/"
-            className="rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-medium"
+            className="rounded-full border border-zinc-300 dark:border-zinc-700 px-5 py-2.5 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             Back to listings
           </Link>
@@ -223,7 +223,7 @@ export default function SubmitListing() {
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
       <h1 className="text-xl font-semibold mb-1">Submit a listing</h1>
-      <p className="text-xs text-zinc-400 mb-6">
+      <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-6">
         Your listing goes live immediately and stays up for 30 days, then
         automatically expires — you can always resubmit.
       </p>
@@ -234,7 +234,7 @@ export default function SubmitListing() {
             name="title"
             required
             placeholder="2br casita near Guiones beach"
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
@@ -247,7 +247,7 @@ export default function SubmitListing() {
             type="number"
             min={0}
             required
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
@@ -258,7 +258,7 @@ export default function SubmitListing() {
               name="area"
               required
               defaultValue=""
-              className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               <option value="" disabled>
                 Select an area
@@ -275,7 +275,7 @@ export default function SubmitListing() {
               name="bedrooms"
               required
               defaultValue=""
-              className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               <option value="" disabled>
                 Select
@@ -306,7 +306,7 @@ export default function SubmitListing() {
             name="lease_term"
             required
             defaultValue="flexible"
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           >
             {LEASE_TERMS.map((t) => (
               <option key={t.value} value={t.value}>
@@ -343,7 +343,7 @@ export default function SubmitListing() {
                 type="number"
                 min={1}
                 defaultValue={1}
-                className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+                className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
               />
             </div>
           )}
@@ -394,7 +394,7 @@ export default function SubmitListing() {
             </div>
           )}
           {photos.length < MAX_PHOTOS && (
-            <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100">
+            <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
               Add photos
               <input
                 type="file"
@@ -406,7 +406,7 @@ export default function SubmitListing() {
             </label>
           )}
           {photoError && (
-            <p className="text-sm text-red-600 mt-1">{photoError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 mt-1">{photoError}</p>
           )}
         </div>
 
@@ -417,7 +417,7 @@ export default function SubmitListing() {
           <textarea
             name="description"
             rows={3}
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
@@ -429,16 +429,16 @@ export default function SubmitListing() {
             name="contact"
             required
             placeholder="+506 8888 8888"
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 rounded-full bg-zinc-900 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-50"
+          className="mt-2 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium disabled:opacity-50"
         >
           {uploadingPhotos
             ? "Uploading photos..."

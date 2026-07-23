@@ -107,20 +107,20 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex flex-wrap gap-4 mb-8 p-4 bg-white border border-zinc-200 rounded-xl">
+      <div className="flex flex-wrap gap-4 mb-8 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
         <div className="w-full">
-          <label className="block text-xs text-zinc-500 mb-1">Search</label>
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Search</label>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by keyword, e.g. pool, casita, quiet"
-            className="w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-xs text-zinc-500 mb-1">
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">
             Max price / month (USD)
           </label>
           <div className="flex items-center gap-2">
@@ -140,11 +140,11 @@ export default function Home() {
         </div>
 
         <div className="min-w-[140px]">
-          <label className="block text-xs text-zinc-500 mb-1">Bedrooms</label>
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Bedrooms</label>
           <select
             value={bedrooms}
             onChange={(e) => setBedrooms(e.target.value)}
-            className="w-full border border-zinc-300 rounded-md px-2 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-2 py-2 text-sm"
           >
             <option>Any</option>
             {BEDROOM_OPTIONS.map((b) => (
@@ -154,11 +154,11 @@ export default function Home() {
         </div>
 
         <div className="min-w-[180px]">
-          <label className="block text-xs text-zinc-500 mb-1">Area</label>
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Area</label>
           <select
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            className="w-full border border-zinc-300 rounded-md px-2 py-2 text-sm"
+            className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-2 py-2 text-sm"
           >
             <option>Any</option>
             {AREAS.map((a) => (
@@ -171,7 +171,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setShowMoreFilters((prev) => !prev)}
-            className="text-xs text-zinc-500 underline hover:text-zinc-900"
+            className="text-xs text-zinc-500 dark:text-zinc-400 underline hover:text-zinc-900 dark:hover:text-zinc-100"
           >
             {showMoreFilters ? "Hide" : "More filters"}
             {activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ""}
@@ -210,19 +210,19 @@ export default function Home() {
         </div>
       </div>
 
-      <p className="text-xs text-zinc-400 mb-4">
+      <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
         Listings automatically expire after 30 days. See something off? Flag
         it — flagged listings get reviewed and removed if needed.
       </p>
 
-      {loading && <p className="text-sm text-zinc-500">Loading listings...</p>}
+      {loading && <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading listings...</p>}
       {error && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-red-600 dark:text-red-400">
           Couldn&apos;t load listings: {error}
         </p>
       )}
       {!loading && !error && filtered.length === 0 && (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           No listings match those filters yet.
         </p>
       )}
@@ -232,7 +232,7 @@ export default function Home() {
           <Link
             key={listing.id}
             href={`/listings/${listing.id}`}
-            className="relative bg-white border border-zinc-200 rounded-xl overflow-hidden hover:border-zinc-300 hover:bg-zinc-50"
+            className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800"
           >
             <button
               onClick={(e) => handleFlag(e, listing.id)}
@@ -243,7 +243,7 @@ export default function Home() {
                   : "Report as suspicious"
               }
               aria-label="Report as suspicious"
-              className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-red-600 disabled:text-red-500 disabled:hover:text-red-500"
+              className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 dark:bg-zinc-900/90 shadow-sm flex items-center justify-center text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 disabled:text-red-500 disabled:hover:text-red-500"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -280,12 +280,12 @@ export default function Home() {
                   ${listing.price.toLocaleString()}/mo
                 </span>
               </div>
-              <div className="text-sm text-zinc-500 mt-1">
+              <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                 {listing.area} &middot; {listing.bedrooms} bd
                 {listing.furnished ? " · furnished" : ""}
                 {listing.pets_ok ? " · pets ok" : ""}
               </div>
-              <div className="text-xs text-zinc-400 mt-1">
+              <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                 {timeAgo(listing.created_at)}
               </div>
             </div>
