@@ -7,6 +7,8 @@ import {
   type Listing,
   AREAS,
   BEDROOM_OPTIONS,
+  AMENITIES,
+  UTILITIES,
   timeAgo,
 } from "@/lib/supabase";
 
@@ -19,7 +21,30 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState(2000);
   const [bedrooms, setBedrooms] = useState<string>("Any");
   const [area, setArea] = useState<string>("Any");
+  const [amenityFilters, setAmenityFilters] = useState<Set<string>>(
+    new Set()
+  );
+  const [utilityFilters, setUtilityFilters] = useState<Set<string>>(
+    new Set()
+  );
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+
+  function toggleAmenityFilter(key: string) {
+    setAmenityFilters((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
+
+  function toggleUtilityFilter(key: string) {
+    setUtilityFilters((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
 
   async function handleFlag(
     e: React.MouseEvent<HTMLButtonElement>,
@@ -64,13 +89,21 @@ export default function Home() {
       if (listing.price > maxPrice) return false;
       if (bedrooms !== "Any" && listing.bedrooms !== bedrooms) return false;
       if (area !== "Any" && listing.area !== area) return false;
+      for (const key of amenityFilters) {
+        if (!listing.amenities?.includes(key)) return false;
+      }
+      for (const key of utilityFilters) {
+        if (!listing.utilities_included?.includes(key)) return false;
+      }
       if (query) {
         const haystack = `${listing.title} ${listing.description ?? ""} ${listing.area}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
       return true;
     });
-  }, [listings, search, maxPrice, bedrooms, area]);
+  }, [listings, search, maxPrice, bedrooms, area, amenityFilters, utilityFilters]);
+
+  const activeFilterCount = amenityFilters.size + utilityFilters.size;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -132,6 +165,48 @@ export default function Home() {
               <option key={a}>{a}</option>
             ))}
           </select>
+        </div>
+
+        <div className="w-full">
+          <button
+            type="button"
+            onClick={() => setShowMoreFilters((prev) => !prev)}
+            className="text-xs text-zinc-500 underline hover:text-zinc-900"
+          >
+            {showMoreFilters ? "Hide" : "More filters"}
+            {activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ""}
+          </button>
+
+          {showMoreFilters && (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+              {AMENITIES.map((a) => (
+                <label
+                  key={a.key}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={amenityFilters.has(a.key)}
+                    onChange={() => toggleAmenityFilter(a.key)}
+                  />
+                  {a.label}
+                </label>
+              ))}
+              {UTILITIES.map((u) => (
+                <label
+                  key={u.key}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={utilityFilters.has(u.key)}
+                    onChange={() => toggleUtilityFilter(u.key)}
+                  />
+                  {u.label} included
+                </label>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
