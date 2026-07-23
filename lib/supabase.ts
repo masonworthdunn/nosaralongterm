@@ -15,7 +15,7 @@ export type Listing = {
   pets_ok: boolean;
   description: string | null;
   contact: string;
-  photo_url: string | null;
+  photo_urls: string[];
   status: "pending" | "approved" | "rejected";
   source: string;
   flagged: boolean;
@@ -28,7 +28,8 @@ export const AREAS = [
   "Guiones",
   "NoGu (North Guiones)",
   "Playa Pelada",
-  "Centro",
+  "Nosara Centro",
+  "Barco Quebrado",
   "Las Huacas",
   "Garza",
   "Santa Marta",
@@ -45,3 +46,14 @@ export const AREAS = [
 ] as const;
 
 export const BEDROOM_OPTIONS = ["Studio", "1", "2", "3+"] as const;
+
+export function whatsAppLink(contact: string) {
+  const trimmed = contact.trim();
+
+  if (/^https?:\/\//i.test(trimmed) || /wa\.me|whatsapp\.com/i.test(trimmed)) {
+    return trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+  }
+
+  const digits = trimmed.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : null;
+}

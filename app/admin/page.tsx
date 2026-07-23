@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import type { Listing } from "@/lib/supabase";
+import { whatsAppLink, type Listing } from "@/lib/supabase";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -116,28 +116,52 @@ export default function AdminPage() {
               listing.flagged ? "border-red-300" : "border-zinc-200"
             }`}
           >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{listing.title}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
-                  {listing.status}
-                </span>
-                {listing.flagged && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                    Flagged
-                  </span>
+            <div className="flex gap-3">
+              <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-zinc-100">
+                {listing.photo_urls?.[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={listing.photo_urls[0]}
+                    alt={listing.title}
+                    className="w-full h-full object-cover"
+                  />
                 )}
               </div>
-              <div className="text-sm text-zinc-500 mt-1">
-                ${listing.price.toLocaleString()}/mo &middot; {listing.area} &middot;{" "}
-                {listing.bedrooms} bd
-              </div>
-              <div className="text-sm text-zinc-500 mt-1">
-                Contact: {listing.contact}
-              </div>
-              <div className="text-xs text-zinc-400 mt-1">
-                Submitted {new Date(listing.created_at).toLocaleDateString()} &middot;
-                Expires {new Date(listing.expires_at).toLocaleDateString()}
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{listing.title}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
+                    {listing.status}
+                  </span>
+                  {listing.flagged && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                      Flagged
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-zinc-500 mt-1">
+                  ${listing.price.toLocaleString()}/mo &middot; {listing.area} &middot;{" "}
+                  {listing.bedrooms} bd
+                </div>
+                <div className="text-sm text-zinc-500 mt-1">
+                  Contact:{" "}
+                  {whatsAppLink(listing.contact) ? (
+                    <a
+                      href={whatsAppLink(listing.contact)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {listing.contact}
+                    </a>
+                  ) : (
+                    listing.contact
+                  )}
+                </div>
+                <div className="text-xs text-zinc-400 mt-1">
+                  Submitted {new Date(listing.created_at).toLocaleDateString()} &middot;
+                  Expires {new Date(listing.expires_at).toLocaleDateString()}
+                </div>
               </div>
             </div>
             <button

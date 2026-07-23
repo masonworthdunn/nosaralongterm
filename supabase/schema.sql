@@ -10,7 +10,7 @@ create table if not exists listings (
   pets_ok boolean not null default false,
   description text,
   contact text not null,
-  photo_url text,
+  photo_urls text[] not null default '{}',
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   source text not null default 'submission',
   flagged boolean not null default false,
