@@ -135,21 +135,24 @@ export default function Home() {
           <Link
             key={listing.id}
             href={`/listings/${listing.id}`}
-            className="bg-white border border-zinc-200 rounded-xl p-3 flex items-center gap-4 hover:border-zinc-300 hover:bg-zinc-50"
+            className="bg-white border border-zinc-200 rounded-xl overflow-hidden hover:border-zinc-300 hover:bg-zinc-50"
           >
-            <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100">
-              {listing.photo_urls?.[0] && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={listing.photo_urls[0]}
-                  alt={listing.title}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
+            {listing.photo_urls?.length > 0 && (
+              <div className="grid grid-cols-3 gap-0.5">
+                {listing.photo_urls.slice(0, 6).map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={url}
+                    alt={listing.title}
+                    className="w-full aspect-square object-cover"
+                  />
+                ))}
+              </div>
+            )}
+            <div className="p-4">
               <div className="flex justify-between items-baseline gap-4">
-                <span className="font-medium truncate">{listing.title}</span>
+                <span className="font-medium">{listing.title}</span>
                 <span className="font-medium whitespace-nowrap">
                   ${listing.price.toLocaleString()}/mo
                 </span>

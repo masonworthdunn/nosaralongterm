@@ -16,6 +16,9 @@ export type Listing = {
   description: string | null;
   contact: string;
   photo_urls: string[];
+  amenities: string[];
+  parking_spaces: number | null;
+  lease_term: string;
   status: "pending" | "approved" | "rejected";
   source: string;
   flagged: boolean;
@@ -46,6 +49,27 @@ export const AREAS = [
 ] as const;
 
 export const BEDROOM_OPTIONS = ["Studio", "1", "2", "3+"] as const;
+
+export const AMENITIES = [
+  { key: "parking", label: "Parking" },
+  { key: "gated", label: "Gated" },
+  { key: "washer", label: "Washer" },
+  { key: "dryer", label: "Dryer" },
+  { key: "wifi", label: "Wifi" },
+  { key: "ac", label: "A/C" },
+  { key: "hot_water", label: "Hot water" },
+  { key: "water_tank", label: "Backup water tank" },
+  { key: "pool", label: "Pool" },
+  { key: "utilities_included", label: "Utilities included" },
+  { key: "generator", label: "Backup power / generator" },
+] as const;
+
+export const LEASE_TERMS = [
+  { value: "3mo", label: "3 months" },
+  { value: "6mo", label: "6 months" },
+  { value: "12mo", label: "12 months" },
+  { value: "flexible", label: "Flexible" },
+] as const;
 
 export function whatsAppLink(contact: string) {
   const trimmed = contact.trim();

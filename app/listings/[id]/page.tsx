@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabase, type Listing, whatsAppLink } from "@/lib/supabase";
+import {
+  supabase,
+  type Listing,
+  whatsAppLink,
+  AMENITIES,
+  LEASE_TERMS,
+} from "@/lib/supabase";
 
 export default function ListingDetail() {
   const params = useParams<{ id: string }>();
@@ -65,6 +71,12 @@ export default function ListingDetail() {
   }
 
   const link = whatsAppLink(listing.contact);
+  const leaseTermLabel = LEASE_TERMS.find(
+    (t) => t.value === listing.lease_term
+  )?.label;
+  const checkedAmenities = AMENITIES.filter((a) =>
+    listing.amenities?.includes(a.key)
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -96,7 +108,23 @@ export default function ListingDetail() {
         {listing.area} &middot; {listing.bedrooms} bd
         {listing.furnished ? " · furnished" : ""}
         {listing.pets_ok ? " · pets ok" : ""}
+        {leaseTermLabel ? ` · ${leaseTermLabel} lease` : ""}
       </div>
+
+      {checkedAmenities.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-4">
+          {checkedAmenities.map((a) => (
+            <span
+              key={a.key}
+              className="text-xs px-2 py-1 rounded-full bg-zinc-100 text-zinc-700"
+            >
+              {a.key === "parking" && listing.parking_spaces
+                ? `Parking (${listing.parking_spaces})`
+                : a.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       {listing.description && (
         <p className="text-sm text-zinc-700 mt-4 whitespace-pre-line">
