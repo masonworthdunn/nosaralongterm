@@ -10,16 +10,17 @@ export default function SiteHeader() {
 
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-      <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-        <Link href="/" className="font-semibold text-lg">
+      <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2 sm:gap-3">
+        <Link href="/" className="font-semibold text-base sm:text-lg shrink truncate">
           Nosara Long Term Rentals
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <Link
             href="/submit"
-            className="text-sm font-medium rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="whitespace-nowrap text-sm font-medium rounded-full border border-zinc-300 dark:border-zinc-700 px-3 sm:px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
-            {t("submitAListing")}
+            <span className="sm:hidden">{t("submitShort")}</span>
+            <span className="hidden sm:inline">{t("submitAListing")}</span>
           </Link>
           <Link
             href="/favorites"

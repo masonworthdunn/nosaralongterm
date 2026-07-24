@@ -3,6 +3,7 @@ export type Language = "en" | "es";
 export const translations = {
   en: {
     submitAListing: "Submit a listing",
+    submitShort: "Submit",
     contactAdmin: "Questions or suggestions? Contact the admin",
     favorites: "Favorites",
     addToFavorites: "Add to favorites",
@@ -90,6 +91,7 @@ export const translations = {
   },
   es: {
     submitAListing: "Publicar un anuncio",
+    submitShort: "Publicar",
     contactAdmin: "¿Preguntas o sugerencias? Contacta al administrador",
     favorites: "Favoritos",
     addToFavorites: "Agregar a favoritos",
