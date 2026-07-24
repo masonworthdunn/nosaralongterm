@@ -253,7 +253,7 @@ export default function ListingDetail() {
         </span>
       </div>
       <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-        {areaLabel(listing.area, lang)} &middot; {listing.bedrooms} bd
+        📍 {areaLabel(listing.area, lang)} &middot; {listing.bedrooms} bd
         {listing.furnished ? ` · ${t("furnished")}` : ""}
         {listing.pets_ok ? ` · ${t("petsOk")}` : ""}
         {leaseTermLabel ? ` · ${leaseTermLabel}` : ""}
