@@ -53,6 +53,32 @@ export default function AdminPage() {
 
   const flaggedCount = listings.filter((l) => l.flagged).length;
 
+  const [manageLinks, setManageLinks] = useState<Record<string, string>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleGetManageLink(id: string) {
+    let url = manageLinks[id];
+
+    if (!url) {
+      const res = await fetch(`/api/admin/listings/${id}/manage-link`, {
+        headers: { "x-admin-password": password },
+      });
+
+      if (!res.ok) {
+        setError("Couldn't get a manage link for that listing.");
+        return;
+      }
+
+      const { token } = await res.json();
+      url = `${window.location.origin}/listings/${id}?token=${token}`;
+      setManageLinks((prev) => ({ ...prev, [id]: url }));
+    }
+
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   async function handleDelete(id: string) {
     if (!confirm("Delete this listing? This can't be undone.")) return;
 
@@ -164,12 +190,20 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => handleDelete(listing.id)}
-              className="text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-full px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-950 whitespace-nowrap"
-            >
-              Delete
-            </button>
+            <div className="flex flex-col gap-2 items-end">
+              <button
+                onClick={() => handleGetManageLink(listing.id)}
+                className="text-sm text-zinc-600 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-full px-3 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 whitespace-nowrap"
+              >
+                {copiedId === listing.id ? "Copied!" : "Copy manage link"}
+              </button>
+              <button
+                onClick={() => handleDelete(listing.id)}
+                className="text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-full px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-950 whitespace-nowrap"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
         {listings.length === 0 && (
