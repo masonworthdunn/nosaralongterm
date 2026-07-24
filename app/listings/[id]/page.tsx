@@ -24,6 +24,8 @@ export default function ListingDetail() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [renewing, setRenewing] = useState(false);
+  const [renewed, setRenewed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,6 +75,28 @@ export default function ListingDetail() {
     if (!listing) return;
     setFlagged(true);
     await supabase.rpc("flag_listing", { listing_id: listing.id });
+  }
+
+  async function handleRenew() {
+    if (!listing || !manageToken) return;
+
+    setRenewing(true);
+
+    const { data: success } = await supabase.rpc("renew_own_listing", {
+      p_listing_id: listing.id,
+      p_token: manageToken,
+    });
+
+    setRenewing(false);
+
+    if (success) {
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + 30);
+      setListing((prev) =>
+        prev ? { ...prev, expires_at: newExpiry.toISOString() } : prev
+      );
+      setRenewed(true);
+    }
   }
 
   async function handleDelete() {
@@ -129,6 +153,10 @@ export default function ListingDetail() {
   const includedUtilities = UTILITIES.filter((u) =>
     listing.utilities_included?.includes(u.key)
   );
+  const daysUntilExpiry = Math.ceil(
+    (new Date(listing.expires_at).getTime() - Date.now()) / 86400000
+  );
+  const showRenewalNudge = manageToken && !renewed && daysUntilExpiry <= 5;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -249,6 +277,28 @@ export default function ListingDetail() {
       {listing.description && (
         <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-4 whitespace-pre-line">
           {listing.description}
+        </p>
+      )}
+
+      {showRenewalNudge && (
+        <div className="mt-6 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-900 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-orange-800 dark:text-orange-200">
+            {daysUntilExpiry <= 0
+              ? "Your listing expires today."
+              : `Your listing expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"}.`}
+          </p>
+          <button
+            onClick={handleRenew}
+            disabled={renewing}
+            className="rounded-full bg-orange-600 text-white px-4 py-2 text-sm font-medium hover:bg-orange-700 disabled:opacity-50 whitespace-nowrap"
+          >
+            {renewing ? "Renewing..." : "Renew for 30 more days"}
+          </button>
+        </div>
+      )}
+      {renewed && (
+        <p className="text-sm text-green-700 dark:text-green-400 mt-6">
+          Renewed — your listing is good for another 30 days.
         </p>
       )}
 

@@ -165,3 +165,25 @@ grant execute on function update_own_listing(
   uuid, uuid, text, numeric, text, text, boolean, boolean, text, text,
   text[], integer, text[], text, text[]
 ) to anon;
+
+-- Lets a submitter push their own listing's expiry another 30 days out.
+create or replace function renew_own_listing(p_listing_id uuid, p_token uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (
+    select 1 from listing_edit_tokens
+    where listing_id = p_listing_id and token = p_token
+  ) then
+    update listings set expires_at = now() + interval '30 days'
+    where id = p_listing_id;
+    return true;
+  end if;
+  return false;
+end;
+$$;
+
+grant execute on function renew_own_listing(uuid, uuid) to anon;
