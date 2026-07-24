@@ -25,7 +25,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
-  const [maxPrice, setMaxPrice] = useState(2000);
+  const [maxPrice, setMaxPrice] = useState(10000);
   const [bedrooms, setBedrooms] = useState<string>("Any");
   const [area, setArea] = useState<string>("Any");
   const [petsOnly, setPetsOnly] = useState(false);
@@ -112,7 +112,8 @@ export default function Home() {
     });
   }, [listings, search, maxPrice, bedrooms, area, petsOnly, amenityFilters, utilityFilters]);
 
-  const activeFilterCount = amenityFilters.size + utilityFilters.size;
+  const activeFilterCount =
+    amenityFilters.size + utilityFilters.size + (petsOnly ? 1 : 0);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -136,7 +137,7 @@ export default function Home() {
             <input
               type="range"
               min={200}
-              max={3000}
+              max={10000}
               step={50}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -176,17 +177,6 @@ export default function Home() {
           </select>
         </div>
 
-        <div className="flex items-end">
-          <label className="flex items-center gap-2 text-sm pb-2">
-            <input
-              type="checkbox"
-              checked={petsOnly}
-              onChange={(e) => setPetsOnly(e.target.checked)}
-            />
-            🐾 {t("petsOkLabel")}
-          </label>
-        </div>
-
         <div className="w-full">
           <button
             type="button"
@@ -199,6 +189,14 @@ export default function Home() {
 
           {showMoreFilters && (
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={petsOnly}
+                  onChange={(e) => setPetsOnly(e.target.checked)}
+                />
+                🐾 {t("petsOkLabel")}
+              </label>
               {AMENITIES.map((a) => (
                 <label
                   key={a.key}
