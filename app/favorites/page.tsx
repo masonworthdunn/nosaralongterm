@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase, type Listing } from "@/lib/supabase";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -61,7 +62,14 @@ export default function FavoritesPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold mb-6">{t("favorites")}</h1>
+      <Link
+        href="/"
+        className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+      >
+        &larr; {t("backToListings")}
+      </Link>
+
+      <h1 className="text-xl font-semibold mt-4 mb-6">{t("favorites")}</h1>
 
       {(!hydrated || loading) && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
