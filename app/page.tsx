@@ -9,10 +9,18 @@ import {
   BEDROOM_OPTIONS,
   AMENITIES,
   UTILITIES,
-  timeAgo,
 } from "@/lib/supabase";
+import {
+  AMENITY_LABELS,
+  UTILITY_LABELS,
+  BEDROOM_LABELS,
+  timeAgoLabel,
+  areaLabel,
+} from "@/lib/i18n";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Home() {
+  const { lang, t } = useLanguage();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,19 +117,19 @@ export default function Home() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex flex-wrap gap-4 mb-8 p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
         <div className="w-full">
-          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Search</label>
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">{t("search")}</label>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by keyword, e.g. pool, casita, quiet"
+            placeholder={t("searchPlaceholder")}
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
         <div className="flex-1 min-w-[200px]">
           <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">
-            Max price / month (USD)
+            {t("maxPrice")}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -140,29 +148,29 @@ export default function Home() {
         </div>
 
         <div className="min-w-[140px]">
-          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Bedrooms</label>
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">{t("bedrooms")}</label>
           <select
             value={bedrooms}
             onChange={(e) => setBedrooms(e.target.value)}
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-2 py-2 text-sm"
           >
-            <option>Any</option>
+            <option value="Any">{t("any")}</option>
             {BEDROOM_OPTIONS.map((b) => (
-              <option key={b}>{b}</option>
+              <option key={b} value={b}>{BEDROOM_LABELS[lang][b]}</option>
             ))}
           </select>
         </div>
 
         <div className="min-w-[180px]">
-          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Area</label>
+          <label className="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">{t("area")}</label>
           <select
             value={area}
             onChange={(e) => setArea(e.target.value)}
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-2 py-2 text-sm"
           >
-            <option>Any</option>
+            <option value="Any">{t("any")}</option>
             {AREAS.map((a) => (
-              <option key={a}>{a}</option>
+              <option key={a} value={a}>{areaLabel(a, lang)}</option>
             ))}
           </select>
         </div>
@@ -173,8 +181,8 @@ export default function Home() {
             onClick={() => setShowMoreFilters((prev) => !prev)}
             className="text-xs text-zinc-500 dark:text-zinc-400 underline hover:text-zinc-900 dark:hover:text-zinc-100"
           >
-            {showMoreFilters ? "Hide" : "More filters"}
-            {activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ""}
+            {showMoreFilters ? t("hide") : t("moreFilters")}
+            {activeFilterCount > 0 ? ` (${activeFilterCount} ${t("active")})` : ""}
           </button>
 
           {showMoreFilters && (
@@ -189,7 +197,7 @@ export default function Home() {
                     checked={amenityFilters.has(a.key)}
                     onChange={() => toggleAmenityFilter(a.key)}
                   />
-                  {a.label}
+                  {AMENITY_LABELS[lang][a.key]}
                 </label>
               ))}
               {UTILITIES.map((u) => (
@@ -202,7 +210,7 @@ export default function Home() {
                     checked={utilityFilters.has(u.key)}
                     onChange={() => toggleUtilityFilter(u.key)}
                   />
-                  {u.label} included
+                  {UTILITY_LABELS[lang][u.key]} {t("utilitiesIncludedFilter")}
                 </label>
               ))}
             </div>
@@ -211,19 +219,18 @@ export default function Home() {
       </div>
 
       <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
-        Listings automatically expire after 30 days. See something off? Flag
-        it — flagged listings get reviewed and removed if needed.
+        {t("expiryNotice")}
       </p>
 
-      {loading && <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading listings...</p>}
+      {loading && <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("loadingListings")}</p>}
       {error && (
         <p className="text-sm text-red-600 dark:text-red-400">
-          Couldn&apos;t load listings: {error}
+          {t("couldntLoadListings")}{error}
         </p>
       )}
       {!loading && !error && filtered.length === 0 && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          No listings match those filters yet.
+          {t("noListingsMatch")}
         </p>
       )}
 
@@ -239,10 +246,10 @@ export default function Home() {
               disabled={flaggedIds.has(listing.id)}
               title={
                 flaggedIds.has(listing.id)
-                  ? "Reported"
-                  : "Report as suspicious"
+                  ? t("reported")
+                  : t("reportAsSuspicious")
               }
-              aria-label="Report as suspicious"
+              aria-label={t("reportAsSuspicious")}
               className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 dark:bg-zinc-900/90 shadow-sm flex items-center justify-center text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 disabled:text-red-500 disabled:hover:text-red-500"
             >
               <svg
@@ -281,12 +288,12 @@ export default function Home() {
                 </span>
               </div>
               <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                {listing.area} &middot; {listing.bedrooms} bd
-                {listing.furnished ? " · furnished" : ""}
-                {listing.pets_ok ? " · pets ok" : ""}
+                {areaLabel(listing.area, lang)} &middot; {listing.bedrooms} bd
+                {listing.furnished ? ` · ${t("furnished")}` : ""}
+                {listing.pets_ok ? ` · ${t("petsOk")}` : ""}
               </div>
               <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                {timeAgo(listing.created_at)}
+                {timeAgoLabel(lang, listing.created_at)}
               </div>
             </div>
           </Link>

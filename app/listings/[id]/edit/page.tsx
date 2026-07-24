@@ -12,6 +12,8 @@ import {
   UTILITIES,
   LEASE_TERMS,
 } from "@/lib/supabase";
+import { AMENITY_LABELS, UTILITY_LABELS, BEDROOM_LABELS, LEASE_TERM_LABELS, areaLabel } from "@/lib/i18n";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const MAX_PHOTOS = 6;
 const MAX_PHOTO_SIZE = 8 * 1024 * 1024; // 8MB
@@ -22,6 +24,7 @@ type PendingPhoto = {
 };
 
 export default function EditListing() {
+  const { lang, t } = useLanguage();
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -96,7 +99,7 @@ export default function EditListing() {
 
     const tooBig = files.find((f) => f.size > MAX_PHOTO_SIZE);
     if (tooBig) {
-      setPhotoError(`${tooBig.name} is over 8MB — pick a smaller photo.`);
+      setPhotoError(t("photoTooBig", { name: tooBig.name }));
       return;
     }
 
@@ -107,7 +110,7 @@ export default function EditListing() {
       ];
       const room = MAX_PHOTOS - existingPhotos.length;
       if (combined.length > room) {
-        setPhotoError(`Only up to ${MAX_PHOTOS} photos total.`);
+        setPhotoError(t("onlyUpToPhotos", { n: MAX_PHOTOS }));
       }
       return combined.slice(0, Math.max(room, 0));
     });
@@ -189,9 +192,7 @@ export default function EditListing() {
     setSubmitting(false);
 
     if (rpcError || !success) {
-      setError(
-        rpcError?.message ?? "That edit link is invalid or expired."
-      );
+      setError(rpcError?.message ?? t("editLinkInvalid"));
       return;
     }
 
@@ -201,7 +202,7 @@ export default function EditListing() {
   if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("loading")}</p>
       </div>
     );
   }
@@ -210,13 +211,13 @@ export default function EditListing() {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          This edit link is invalid or the listing no longer exists.
+          {t("editLinkInvalid")}
         </p>
         <Link
           href="/"
           className="text-sm text-zinc-900 dark:text-zinc-100 underline mt-2 inline-block"
         >
-          Back to listings
+          {t("backToListings")}
         </Link>
       </div>
     );
@@ -224,10 +225,10 @@ export default function EditListing() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold mb-6">Edit your listing</h1>
+      <h1 className="text-xl font-semibold mb-6">{t("editYourListing")}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Title</label>
+          <label className="block text-sm font-medium mb-1">{t("title")}</label>
           <input
             name="title"
             required
@@ -238,7 +239,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Price / month (USD)
+            {t("pricePerMonth")}
           </label>
           <input
             name="price"
@@ -252,7 +253,7 @@ export default function EditListing() {
 
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Area</label>
+            <label className="block text-sm font-medium mb-1">{t("area")}</label>
             <select
               name="area"
               required
@@ -260,13 +261,13 @@ export default function EditListing() {
               className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               {AREAS.map((a) => (
-                <option key={a}>{a}</option>
+                <option key={a} value={a}>{areaLabel(a, lang)}</option>
               ))}
             </select>
           </div>
 
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Bedrooms</label>
+            <label className="block text-sm font-medium mb-1">{t("bedrooms")}</label>
             <select
               name="bedrooms"
               required
@@ -274,7 +275,7 @@ export default function EditListing() {
               className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               {BEDROOM_OPTIONS.map((b) => (
-                <option key={b}>{b}</option>
+                <option key={b} value={b}>{BEDROOM_LABELS[lang][b]}</option>
               ))}
             </select>
           </div>
@@ -287,7 +288,7 @@ export default function EditListing() {
               name="furnished"
               defaultChecked={listing.furnished}
             />
-            Furnished
+            {t("furnishedLabel")}
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -295,13 +296,13 @@ export default function EditListing() {
               name="pets_ok"
               defaultChecked={listing.pets_ok}
             />
-            Pets ok
+            {t("petsOkLabel")}
           </label>
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Lease term
+            {t("leaseTerm")}
           </label>
           <select
             name="lease_term"
@@ -309,9 +310,9 @@ export default function EditListing() {
             defaultValue={listing.lease_term}
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           >
-            {LEASE_TERMS.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {LEASE_TERMS.map((term) => (
+              <option key={term.value} value={term.value}>
+                {LEASE_TERM_LABELS[lang][term.value]}
               </option>
             ))}
           </select>
@@ -319,7 +320,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Amenities
+            {lang === "es" ? "Comodidades" : "Amenities"}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {AMENITIES.map((a) => (
@@ -329,14 +330,14 @@ export default function EditListing() {
                   checked={selectedAmenities.has(a.key)}
                   onChange={() => toggleAmenity(a.key)}
                 />
-                {a.label}
+                {AMENITY_LABELS[lang][a.key]}
               </label>
             ))}
           </div>
           {selectedAmenities.has("parking") && (
             <div className="mt-3">
               <label className="block text-sm font-medium mb-1">
-                Parking spaces
+                {t("parkingSpaces")}
               </label>
               <input
                 name="parking_spaces"
@@ -351,7 +352,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Utilities included in rent
+            {lang === "es" ? "Servicios incluidos en el alquiler" : "Utilities included in rent"}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {UTILITIES.map((u) => (
@@ -361,7 +362,7 @@ export default function EditListing() {
                   checked={selectedUtilities.has(u.key)}
                   onChange={() => toggleUtility(u.key)}
                 />
-                {u.label}
+                {UTILITY_LABELS[lang][u.key]}
               </label>
             ))}
           </div>
@@ -369,7 +370,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Photos (up to {MAX_PHOTOS})
+            {t("photosUpTo", { n: MAX_PHOTOS })}
           </label>
           {(existingPhotos.length > 0 || newPhotos.length > 0) && (
             <div className="flex gap-2 mb-2 overflow-x-auto">
@@ -413,7 +414,7 @@ export default function EditListing() {
           )}
           {totalPhotoCount < MAX_PHOTOS && (
             <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              Add photos
+              {t("addPhotos")}
               <input
                 type="file"
                 accept="image/*"
@@ -430,7 +431,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Description (optional)
+            {t("description")}
           </label>
           <textarea
             name="description"
@@ -442,7 +443,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Contact (WhatsApp number or link)
+            {t("contact")}
           </label>
           <input
             name="contact"
@@ -461,16 +462,16 @@ export default function EditListing() {
             className="flex-1 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium disabled:opacity-50"
           >
             {uploadingPhotos
-              ? "Uploading photos..."
+              ? t("uploadingPhotos")
               : submitting
-                ? "Saving..."
-                : "Save changes"}
+                ? t("saving")
+                : t("saveChanges")}
           </button>
           <Link
             href={`/listings/${listing.id}?token=${token}`}
             className="rounded-full border border-zinc-300 dark:border-zinc-700 px-5 py-2.5 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
-            Cancel
+            {t("cancel")}
           </Link>
         </div>
       </form>

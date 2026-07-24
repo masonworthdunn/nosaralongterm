@@ -11,6 +11,8 @@ import {
   LEASE_TERMS,
   whatsAppSelfSendLink,
 } from "@/lib/supabase";
+import { AMENITY_LABELS, UTILITY_LABELS, BEDROOM_LABELS, LEASE_TERM_LABELS, areaLabel } from "@/lib/i18n";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const MAX_PHOTOS = 6;
 const MAX_PHOTO_SIZE = 8 * 1024 * 1024; // 8MB
@@ -21,6 +23,7 @@ type PendingPhoto = {
 };
 
 export default function SubmitListing() {
+  const { lang, t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [newListingId, setNewListingId] = useState<string | null>(null);
@@ -73,14 +76,14 @@ export default function SubmitListing() {
 
     const tooBig = files.find((f) => f.size > MAX_PHOTO_SIZE);
     if (tooBig) {
-      setPhotoError(`${tooBig.name} is over 8MB — pick a smaller photo.`);
+      setPhotoError(t("photoTooBig", { name: tooBig.name }));
       return;
     }
 
     setPhotos((prev) => {
       const combined = [...prev, ...files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }))];
       if (combined.length > MAX_PHOTOS) {
-        setPhotoError(`Only up to ${MAX_PHOTOS} photos — using the first ${MAX_PHOTOS}.`);
+        setPhotoError(t("onlyUpToPhotos", { n: MAX_PHOTOS }));
       }
       return combined.slice(0, MAX_PHOTOS);
     });
@@ -196,27 +199,25 @@ export default function SubmitListing() {
 
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold mb-2">Thanks!</h1>
+        <h1 className="text-xl font-semibold mb-2">{t("thanks")}</h1>
         <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-          Your listing is live on the site now.
+          {t("listingLiveNow")}
         </p>
 
         {manageToken && (
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 mb-6 text-left">
             <p className="text-sm font-medium mb-1">
-              Save this link to edit or delete your listing later
+              {t("saveThisLink")}
             </p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-              There are no accounts on this site, so this link is the only
-              way to manage your listing before it expires. Bookmark it or
-              copy it somewhere safe.
+              {t("noAccountsNote")}
             </p>
             <button
               type="button"
               onClick={copyManageLink}
               className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
-              {linkCopied ? "Copied!" : "Copy manage link"}
+              {linkCopied ? t("copied") : t("copyManageLink")}
             </button>
             {selfSendLink && (
               <a
@@ -225,7 +226,7 @@ export default function SubmitListing() {
                 rel="noopener noreferrer"
                 className="mt-2 flex items-center justify-center gap-2 w-full rounded-md border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 px-3 py-2 text-sm font-medium hover:bg-green-50 dark:hover:bg-green-950"
               >
-                Send me this link on WhatsApp
+                {t("sendOnWhatsApp")}
               </a>
             )}
           </div>
@@ -236,13 +237,13 @@ export default function SubmitListing() {
             href={manageUrl}
             className="rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium"
           >
-            View your listing
+            {t("viewYourListing")}
           </Link>
           <Link
             href="/"
             className="rounded-full border border-zinc-300 dark:border-zinc-700 px-5 py-2.5 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
-            Back to listings
+            {t("backToListings")}
           </Link>
         </div>
       </div>
@@ -251,25 +252,24 @@ export default function SubmitListing() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold mb-1">Submit a listing</h1>
+      <h1 className="text-xl font-semibold mb-1">{t("submitAListing")}</h1>
       <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-6">
-        Your listing goes live immediately and stays up for 30 days, then
-        automatically expires — you can always resubmit.
+        {t("goesLiveNote")}
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Title</label>
+          <label className="block text-sm font-medium mb-1">{t("title")}</label>
           <input
             name="title"
             required
-            placeholder="2br casita near Guiones beach"
+            placeholder={t("titlePlaceholder")}
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Price / month (USD)
+            {t("pricePerMonth")}
           </label>
           <input
             name="price"
@@ -282,7 +282,7 @@ export default function SubmitListing() {
 
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Area</label>
+            <label className="block text-sm font-medium mb-1">{t("area")}</label>
             <select
               name="area"
               required
@@ -290,16 +290,16 @@ export default function SubmitListing() {
               className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               <option value="" disabled>
-                Select an area
+                {t("selectAnArea")}
               </option>
               {AREAS.map((a) => (
-                <option key={a}>{a}</option>
+                <option key={a} value={a}>{areaLabel(a, lang)}</option>
               ))}
             </select>
           </div>
 
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Bedrooms</label>
+            <label className="block text-sm font-medium mb-1">{t("bedrooms")}</label>
             <select
               name="bedrooms"
               required
@@ -307,10 +307,10 @@ export default function SubmitListing() {
               className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
             >
               <option value="" disabled>
-                Select
+                {t("select")}
               </option>
               {BEDROOM_OPTIONS.map((b) => (
-                <option key={b}>{b}</option>
+                <option key={b} value={b}>{BEDROOM_LABELS[lang][b]}</option>
               ))}
             </select>
           </div>
@@ -319,17 +319,17 @@ export default function SubmitListing() {
         <div className="flex gap-6">
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="furnished" />
-            Furnished
+            {t("furnishedLabel")}
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="pets_ok" />
-            Pets ok
+            {t("petsOkLabel")}
           </label>
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Lease term
+            {t("leaseTerm")}
           </label>
           <select
             name="lease_term"
@@ -337,9 +337,9 @@ export default function SubmitListing() {
             defaultValue="flexible"
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           >
-            {LEASE_TERMS.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {LEASE_TERMS.map((term) => (
+              <option key={term.value} value={term.value}>
+                {LEASE_TERM_LABELS[lang][term.value]}
               </option>
             ))}
           </select>
@@ -347,8 +347,7 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Amenities — check anything that applies. The more info you give,
-            the fewer questions renters will need to ask.
+            {t("amenitiesLabel")}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {AMENITIES.map((a) => (
@@ -358,14 +357,14 @@ export default function SubmitListing() {
                   checked={selectedAmenities.has(a.key)}
                   onChange={() => toggleAmenity(a.key)}
                 />
-                {a.label}
+                {AMENITY_LABELS[lang][a.key]}
               </label>
             ))}
           </div>
           {selectedAmenities.has("parking") && (
             <div className="mt-3">
               <label className="block text-sm font-medium mb-1">
-                Parking spaces
+                {t("parkingSpaces")}
               </label>
               <input
                 name="parking_spaces"
@@ -380,7 +379,7 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Utilities included in rent — check any that are covered
+            {t("utilitiesIncludedLabel")}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {UTILITIES.map((u) => (
@@ -390,7 +389,7 @@ export default function SubmitListing() {
                   checked={selectedUtilities.has(u.key)}
                   onChange={() => toggleUtility(u.key)}
                 />
-                {u.label}
+                {UTILITY_LABELS[lang][u.key]}
               </label>
             ))}
           </div>
@@ -398,7 +397,7 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Photos (up to {MAX_PHOTOS})
+            {t("photosUpTo", { n: MAX_PHOTOS })}
           </label>
           {photos.length > 0 && (
             <div className="flex gap-2 mb-2 overflow-x-auto">
@@ -424,7 +423,7 @@ export default function SubmitListing() {
           )}
           {photos.length < MAX_PHOTOS && (
             <label className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              Add photos
+              {t("addPhotos")}
               <input
                 type="file"
                 accept="image/*"
@@ -441,7 +440,7 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Description (optional)
+            {t("description")}
           </label>
           <textarea
             name="description"
@@ -452,12 +451,12 @@ export default function SubmitListing() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Contact (WhatsApp number or link)
+            {t("contact")}
           </label>
           <input
             name="contact"
             required
-            placeholder="+506 8888 8888"
+            placeholder={t("contactPlaceholder")}
             className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md px-3 py-2 text-sm"
           />
         </div>
@@ -470,10 +469,10 @@ export default function SubmitListing() {
           className="mt-2 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium disabled:opacity-50"
         >
           {uploadingPhotos
-            ? "Uploading photos..."
+            ? t("uploadingPhotos")
             : submitting
-              ? "Submitting..."
-              : "Submit listing"}
+              ? t("submitting")
+              : t("submitListing")}
         </button>
       </form>
     </div>

@@ -10,10 +10,12 @@ import {
   AMENITIES,
   UTILITIES,
   LEASE_TERMS,
-  timeAgo,
 } from "@/lib/supabase";
+import { AMENITY_LABELS, UTILITY_LABELS, LEASE_TERM_LABELS, timeAgoLabel, areaLabel } from "@/lib/i18n";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function ListingDetail() {
+  const { lang, t } = useLanguage();
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -101,7 +103,14 @@ export default function ListingDetail() {
 
   async function handleDelete() {
     if (!listing || !manageToken) return;
-    if (!confirm("Delete this listing? This can't be undone.")) return;
+    if (
+      !confirm(
+        lang === "es"
+          ? "¿Eliminar este anuncio? Esto no se puede deshacer."
+          : "Delete this listing? This can't be undone."
+      )
+    )
+      return;
 
     setDeleting(true);
     setDeleteError(null);
@@ -115,14 +124,14 @@ export default function ListingDetail() {
       router.push("/");
     } else {
       setDeleting(false);
-      setDeleteError("That manage link is invalid or already used.");
+      setDeleteError(t("manageLinkInvalid"));
     }
   }
 
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("loading")}</p>
       </div>
     );
   }
@@ -131,13 +140,13 @@ export default function ListingDetail() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          This listing isn&apos;t available anymore.
+          {t("listingGone")}
         </p>
         <Link
           href="/"
           className="text-sm text-zinc-900 dark:text-zinc-100 underline mt-2 inline-block"
         >
-          Back to listings
+          {t("backToListings")}
         </Link>
       </div>
     );
@@ -145,8 +154,10 @@ export default function ListingDetail() {
 
   const link = whatsAppLink(listing.contact);
   const leaseTermLabel = LEASE_TERMS.find(
-    (t) => t.value === listing.lease_term
-  )?.label;
+    (term) => term.value === listing.lease_term
+  )
+    ? LEASE_TERM_LABELS[lang][listing.lease_term]
+    : null;
   const checkedAmenities = AMENITIES.filter((a) =>
     listing.amenities?.includes(a.key)
   );
@@ -164,7 +175,7 @@ export default function ListingDetail() {
         href="/"
         className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
       >
-        &larr; Back to listings
+        &larr; {t("backToListings")}
       </Link>
 
       {listing.photo_urls?.length > 0 && (
@@ -242,13 +253,13 @@ export default function ListingDetail() {
         </span>
       </div>
       <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-        {listing.area} &middot; {listing.bedrooms} bd
-        {listing.furnished ? " · furnished" : ""}
-        {listing.pets_ok ? " · pets ok" : ""}
-        {leaseTermLabel ? ` · ${leaseTermLabel} lease` : ""}
+        {areaLabel(listing.area, lang)} &middot; {listing.bedrooms} bd
+        {listing.furnished ? ` · ${t("furnished")}` : ""}
+        {listing.pets_ok ? ` · ${t("petsOk")}` : ""}
+        {leaseTermLabel ? ` · ${leaseTermLabel}` : ""}
       </div>
       <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-        {timeAgo(listing.created_at)}
+        {timeAgoLabel(lang, listing.created_at)}
       </div>
 
       {(checkedAmenities.length > 0 || includedUtilities.length > 0) && (
@@ -259,8 +270,8 @@ export default function ListingDetail() {
               className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
             >
               {a.key === "parking" && listing.parking_spaces
-                ? `Parking (${listing.parking_spaces})`
-                : a.label}
+                ? `${AMENITY_LABELS[lang][a.key]} (${listing.parking_spaces})`
+                : AMENITY_LABELS[lang][a.key]}
             </span>
           ))}
           {includedUtilities.map((u) => (
@@ -268,7 +279,7 @@ export default function ListingDetail() {
               key={u.key}
               className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300"
             >
-              {u.label} included
+              {UTILITY_LABELS[lang][u.key]} {t("included")}
             </span>
           ))}
         </div>
@@ -284,42 +295,45 @@ export default function ListingDetail() {
         <div className="mt-6 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-900 rounded-xl p-4 flex items-center justify-between gap-4">
           <p className="text-sm text-orange-800 dark:text-orange-200">
             {daysUntilExpiry <= 0
-              ? "Your listing expires today."
-              : `Your listing expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"}.`}
+              ? t("expiresToday")
+              : t("expiresInDays", {
+                  n: daysUntilExpiry,
+                  s: daysUntilExpiry === 1 ? "" : "s",
+                })}
           </p>
           <button
             onClick={handleRenew}
             disabled={renewing}
             className="rounded-full bg-orange-600 text-white px-4 py-2 text-sm font-medium hover:bg-orange-700 disabled:opacity-50 whitespace-nowrap"
           >
-            {renewing ? "Renewing..." : "Renew for 30 more days"}
+            {renewing ? t("renewing") : t("renewButton")}
           </button>
         </div>
       )}
       {renewed && (
         <p className="text-sm text-green-700 dark:text-green-400 mt-6">
-          Renewed — your listing is good for another 30 days.
+          {t("renewedMessage")}
         </p>
       )}
 
       {manageToken && (
         <div className="mt-6 bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900 rounded-xl p-4 flex items-center justify-between gap-4">
           <p className="text-sm text-amber-800 dark:text-amber-200">
-            You have the manage link for this listing.
+            {t("haveManageLink")}
           </p>
           <div className="flex gap-2">
             <Link
               href={`/listings/${listing.id}/edit?token=${manageToken}`}
               className="rounded-full border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 px-4 py-2 text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-900 whitespace-nowrap"
             >
-              Edit
+              {t("edit")}
             </Link>
             <button
               onClick={handleDelete}
               disabled={deleting}
               className="rounded-full border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-2 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900 disabled:opacity-50 whitespace-nowrap"
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? t("deleting") : t("delete")}
             </button>
           </div>
         </div>
@@ -338,24 +352,24 @@ export default function ListingDetail() {
             rel="noopener noreferrer"
             className="rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-medium"
           >
-            Message on WhatsApp
+            {t("messageOnWhatsApp")}
           </a>
         ) : (
           <span className="text-sm text-zinc-500 dark:text-zinc-400">
-            Contact: {listing.contact}
+            {t("contactColon")}{listing.contact}
           </span>
         )}
 
         {flagged ? (
           <span className="text-xs text-zinc-400 dark:text-zinc-500">
-            Reported
+            {t("reported")}
           </span>
         ) : (
           <button
             onClick={handleFlag}
             className="text-xs text-zinc-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 underline"
           >
-            Report as suspicious
+            {t("reportAsSuspicious")}
           </button>
         )}
       </div>
