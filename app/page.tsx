@@ -28,6 +28,7 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState(2000);
   const [bedrooms, setBedrooms] = useState<string>("Any");
   const [area, setArea] = useState<string>("Any");
+  const [petsOnly, setPetsOnly] = useState(false);
   const [amenityFilters, setAmenityFilters] = useState<Set<string>>(
     new Set()
   );
@@ -96,6 +97,7 @@ export default function Home() {
       if (listing.price > maxPrice) return false;
       if (bedrooms !== "Any" && listing.bedrooms !== bedrooms) return false;
       if (area !== "Any" && listing.area !== area) return false;
+      if (petsOnly && !listing.pets_ok) return false;
       for (const key of amenityFilters) {
         if (!listing.amenities?.includes(key)) return false;
       }
@@ -108,7 +110,7 @@ export default function Home() {
       }
       return true;
     });
-  }, [listings, search, maxPrice, bedrooms, area, amenityFilters, utilityFilters]);
+  }, [listings, search, maxPrice, bedrooms, area, petsOnly, amenityFilters, utilityFilters]);
 
   const activeFilterCount = amenityFilters.size + utilityFilters.size;
 
@@ -172,6 +174,17 @@ export default function Home() {
               <option key={a} value={a}>{areaLabel(a, lang)}</option>
             ))}
           </select>
+        </div>
+
+        <div className="flex items-end">
+          <label className="flex items-center gap-2 text-sm pb-2">
+            <input
+              type="checkbox"
+              checked={petsOnly}
+              onChange={(e) => setPetsOnly(e.target.checked)}
+            />
+            🐾 {t("petsOkLabel")}
+          </label>
         </div>
 
         <div className="w-full">
