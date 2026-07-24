@@ -9,6 +9,7 @@ import {
   AMENITIES,
   UTILITIES,
   LEASE_TERMS,
+  whatsAppSelfSendLink,
 } from "@/lib/supabase";
 
 const MAX_PHOTOS = 6;
@@ -24,6 +25,10 @@ export default function SubmitListing() {
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [newListingId, setNewListingId] = useState<string | null>(null);
   const [manageToken, setManageToken] = useState<string | null>(null);
+  const [submittedContact, setSubmittedContact] = useState<string | null>(
+    null
+  );
+  const [submittedTitle, setSubmittedTitle] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -161,6 +166,8 @@ export default function SubmitListing() {
     setSubmitting(false);
     setNewListingId(data.id);
     setManageToken(token ?? null);
+    setSubmittedContact(form.get("contact") as string);
+    setSubmittedTitle(form.get("title") as string);
   }
 
   function copyManageLink() {
@@ -174,6 +181,18 @@ export default function SubmitListing() {
     const manageUrl = manageToken
       ? `/listings/${newListingId}?token=${manageToken}`
       : `/listings/${newListingId}`;
+
+    const fullManageUrl = manageToken
+      ? `${window.location.origin}${manageUrl}`
+      : null;
+
+    const selfSendLink =
+      fullManageUrl && submittedContact
+        ? whatsAppSelfSendLink(
+            submittedContact,
+            `Manage link for "${submittedTitle}" on Nosara Long Term Rentals: ${fullManageUrl}`
+          )
+        : null;
 
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
@@ -199,6 +218,16 @@ export default function SubmitListing() {
             >
               {linkCopied ? "Copied!" : "Copy manage link"}
             </button>
+            {selfSendLink && (
+              <a
+                href={selfSendLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center justify-center gap-2 w-full rounded-md border border-green-300 dark:border-green-800 text-green-700 dark:text-green-400 px-3 py-2 text-sm font-medium hover:bg-green-50 dark:hover:bg-green-950"
+              >
+                Send me this link on WhatsApp
+              </a>
+            )}
           </div>
         )}
 

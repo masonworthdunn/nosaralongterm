@@ -101,3 +101,9 @@ export function whatsAppLink(contact: string) {
   const digits = trimmed.replace(/\D/g, "");
   return digits ? `https://wa.me/${digits}` : null;
 }
+
+export function whatsAppSelfSendLink(contact: string, message: string) {
+  const digits = contact.replace(/\D/g, "");
+  if (digits.length < 8) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
