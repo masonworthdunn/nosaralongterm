@@ -23,7 +23,7 @@ export default function ListingCard({
       href={`/listings/${listing.id}`}
       className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800"
     >
-      <div className="absolute top-2 right-2 z-10 flex gap-2">
+      <div className="absolute bottom-2 right-2 z-10 flex gap-2">
         <FavoriteButton
           listingId={listing.id}
           labels={{ add: t("addToFavorites"), remove: t("removeFromFavorites") }}

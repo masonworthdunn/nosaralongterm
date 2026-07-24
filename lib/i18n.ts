@@ -200,9 +200,7 @@ export const AMENITY_LABELS: Record<Language, Record<string, string>> = {
     wifi: "Wifi",
     ac: "A/C",
     hot_water: "Hot water",
-    water_tank: "Backup water tank",
     pool: "Pool",
-    generator: "Backup power / generator",
   },
   es: {
     parking: "Estacionamiento",
@@ -212,9 +210,7 @@ export const AMENITY_LABELS: Record<Language, Record<string, string>> = {
     wifi: "Wifi",
     ac: "Aire acondicionado",
     hot_water: "Agua caliente",
-    water_tank: "Tanque de agua de respaldo",
     pool: "Piscina",
-    generator: "Planta eléctrica / generador",
   },
 };
 
@@ -222,15 +218,11 @@ export const UTILITY_LABELS: Record<Language, Record<string, string>> = {
   en: {
     electricity: "Electricity",
     water: "Water",
-    gas: "Gas",
-    trash: "Trash",
     wifi: "Wifi/Internet",
   },
   es: {
     electricity: "Electricidad",
     water: "Agua",
-    gas: "Gas",
-    trash: "Basura",
     wifi: "Wifi/Internet",
   },
 };

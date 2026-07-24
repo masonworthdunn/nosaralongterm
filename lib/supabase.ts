@@ -59,16 +59,12 @@ export const AMENITIES = [
   { key: "wifi", label: "Wifi" },
   { key: "ac", label: "A/C" },
   { key: "hot_water", label: "Hot water" },
-  { key: "water_tank", label: "Backup water tank" },
   { key: "pool", label: "Pool" },
-  { key: "generator", label: "Backup power / generator" },
 ] as const;
 
 export const UTILITIES = [
   { key: "electricity", label: "Electricity" },
   { key: "water", label: "Water" },
-  { key: "gas", label: "Gas" },
-  { key: "trash", label: "Trash" },
   { key: "wifi", label: "Wifi/Internet" },
 ] as const;
 
