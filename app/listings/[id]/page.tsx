@@ -13,6 +13,7 @@ import {
 } from "@/lib/supabase";
 import { AMENITY_LABELS, UTILITY_LABELS, LEASE_TERM_LABELS, timeAgoLabel, areaLabel } from "@/lib/i18n";
 import { useLanguage } from "@/components/LanguageProvider";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export default function ListingDetail() {
   const { lang, t } = useLanguage();
@@ -247,7 +248,14 @@ export default function ListingDetail() {
       )}
 
       <div className="mt-6 flex justify-between items-baseline gap-4">
-        <h1 className="text-xl font-semibold">{listing.title}</h1>
+        <div className="flex items-center gap-2 min-w-0">
+          <FavoriteButton
+            listingId={listing.id}
+            labels={{ add: t("addToFavorites"), remove: t("removeFromFavorites") }}
+            className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center"
+          />
+          <h1 className="text-xl font-semibold truncate">{listing.title}</h1>
+        </div>
         <span className="text-xl font-semibold whitespace-nowrap">
           ${listing.price.toLocaleString()}/mo
         </span>

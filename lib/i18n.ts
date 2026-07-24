@@ -4,6 +4,10 @@ export const translations = {
   en: {
     submitAListing: "Submit a listing",
     contactAdmin: "Questions or suggestions? Contact the admin",
+    favorites: "Favorites",
+    addToFavorites: "Add to favorites",
+    removeFromFavorites: "Remove from favorites",
+    noFavoritesYet: "No favorites yet. Tap the heart on a listing to save it here.",
 
     search: "Search",
     searchPlaceholder: "Search by keyword, e.g. pool, casita, quiet",
@@ -87,6 +91,10 @@ export const translations = {
   es: {
     submitAListing: "Publicar un anuncio",
     contactAdmin: "¿Preguntas o sugerencias? Contacta al administrador",
+    favorites: "Favoritos",
+    addToFavorites: "Agregar a favoritos",
+    removeFromFavorites: "Quitar de favoritos",
+    noFavoritesYet: "Todavía no hay favoritos. Toca el corazón en un anuncio para guardarlo aquí.",
 
     search: "Buscar",
     searchPlaceholder: "Busca por palabra clave, ej. piscina, casita, tranquilo",
