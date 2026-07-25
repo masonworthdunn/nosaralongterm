@@ -34,7 +34,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     setFavorites((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
+      } catch {
+        // localStorage unavailable — favorites won't persist
+      }
       return next;
     });
   }

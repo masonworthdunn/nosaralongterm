@@ -75,23 +75,25 @@ export const LEASE_TERMS = [
   { value: "flexible", label: "Flexible" },
 ] as const;
 
-export function timeAgo(dateStr: string) {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHr = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHr / 24);
-
-  if (diffDay >= 1) return `Posted ${diffDay}d ago`;
-  if (diffHr >= 1) return `Posted ${diffHr}h ago`;
-  if (diffMin >= 1) return `Posted ${diffMin}m ago`;
-  return "Posted just now";
-}
-
 export function whatsAppLink(contact: string) {
   const trimmed = contact.trim();
 
-  if (/^https?:\/\//i.test(trimmed) || /wa\.me|whatsapp\.com/i.test(trimmed)) {
-    return trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const host = new URL(trimmed).hostname.toLowerCase();
+      if (
+        host === "wa.me" ||
+        host.endsWith(".wa.me") ||
+        host === "whatsapp.com" ||
+        host.endsWith(".whatsapp.com")
+      ) {
+        return trimmed;
+      }
+    } catch {
+      // malformed URL — fall through to digit extraction
+    }
+  } else if (/^(wa\.me|whatsapp\.com)\//i.test(trimmed)) {
+    return `https://${trimmed}`;
   }
 
   const digits = trimmed.replace(/\D/g, "");

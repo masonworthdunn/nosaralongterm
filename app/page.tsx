@@ -61,7 +61,14 @@ export default function Home() {
     e.preventDefault();
     e.stopPropagation();
     setFlaggedIds((prev) => new Set(prev).add(id));
-    await supabase.rpc("flag_listing", { listing_id: id });
+    const { error } = await supabase.rpc("flag_listing", { listing_id: id });
+    if (error) {
+      setFlaggedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   }
 
   useEffect(() => {

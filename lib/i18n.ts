@@ -181,16 +181,6 @@ export const translations = {
 
 export type TranslationKey = keyof (typeof translations)["en"];
 
-export function tr(lang: Language, key: TranslationKey, vars?: Record<string, string | number>) {
-  let str: string = translations[lang][key];
-  if (vars) {
-    for (const [k, v] of Object.entries(vars)) {
-      str = str.replaceAll(`{${k}}`, String(v));
-    }
-  }
-  return str;
-}
-
 export const AMENITY_LABELS: Record<Language, Record<string, string>> = {
   en: {
     parking: "Parking",

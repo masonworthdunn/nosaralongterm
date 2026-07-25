@@ -97,7 +97,10 @@ export default function ListingDetail() {
   async function handleFlag() {
     if (!listing) return;
     setFlagged(true);
-    await supabase.rpc("flag_listing", { listing_id: listing.id });
+    const { error } = await supabase.rpc("flag_listing", {
+      listing_id: listing.id,
+    });
+    if (error) setFlagged(false);
   }
 
   async function handleRenew() {

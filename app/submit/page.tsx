@@ -102,7 +102,7 @@ export default function SubmitListing() {
     setSubmitting(true);
     setError(null);
 
-    let photoUrls: string[] = [];
+    const photoUrls: string[] = [];
 
     if (photos.length > 0) {
       setUploadingPhotos(true);

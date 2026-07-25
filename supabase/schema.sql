@@ -187,3 +187,11 @@ end;
 $$;
 
 grant execute on function renew_own_listing(uuid, uuid) to anon;
+
+-- Server-side enforcement of photo size/type, so a modified or malicious
+-- client can't bypass the client-side 8MB/image-only checks in the
+-- submit/edit forms.
+update storage.buckets
+set file_size_limit = 8388608,
+    allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+where id = 'listing-photos';

@@ -21,15 +21,23 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Language>("en");
 
   useEffect(() => {
-    const stored = localStorage.getItem("lang");
-    if (stored === "es" || stored === "en") {
-      setLangState(stored);
+    try {
+      const stored = localStorage.getItem("lang");
+      if (stored === "es" || stored === "en") {
+        setLangState(stored);
+      }
+    } catch {
+      // localStorage unavailable — fall back to default language
     }
   }, []);
 
   function setLang(next: Language) {
     setLangState(next);
-    localStorage.setItem("lang", next);
+    try {
+      localStorage.setItem("lang", next);
+    } catch {
+      // localStorage unavailable — language choice won't persist
+    }
   }
 
   function t(key: TranslationKey, vars?: Record<string, string | number>) {

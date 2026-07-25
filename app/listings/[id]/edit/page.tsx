@@ -135,7 +135,7 @@ export default function EditListing() {
     setSubmitting(true);
     setError(null);
 
-    let uploadedUrls: string[] = [];
+    const uploadedUrls: string[] = [];
 
     if (newPhotos.length > 0) {
       setUploadingPhotos(true);
@@ -320,7 +320,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            {lang === "es" ? "Comodidades" : "Amenities"}
+            {t("amenitiesLabel")}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {AMENITIES.map((a) => (
@@ -352,7 +352,7 @@ export default function EditListing() {
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            {lang === "es" ? "Servicios incluidos en el alquiler" : "Utilities included in rent"}
+            {t("utilitiesIncludedLabel")}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {UTILITIES.map((u) => (
