@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nosara Long Term Rentals
 
-## Getting Started
+A free, no-login community rental-listings board for Nosara, Costa Rica — [nosaralongterm.com](https://nosaralongterm.com). Built to replace disorganized WhatsApp/Facebook rental groups with something searchable. Run by one person as an unpaid community service, not a business.
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router, Turbopack) + TypeScript
+- [Supabase](https://supabase.com) — Postgres, Row Level Security, Storage (no Supabase Auth — see below)
+- Tailwind CSS v4
+- Deployed on [Vercel](https://vercel.com), auto-deploys on push
+
+## No accounts, anywhere
+
+There are no logins. Two different things are handled without them:
+
+- **Favorites, theme, language** — stored in `localStorage`, per-browser.
+- **Owning a listing** (editing, deleting, renewing) — a random unguessable link (`?token=...`) known only to whoever posted the listing. Losing the link means losing easy access to the listing; the admin can look up a fresh link if needed.
+
+See `CLAUDE.md` for the full architecture writeup — data model, RLS/security model, i18n system, hydration-safety patterns, and known limitations. It's kept up to date and is the source of truth for anything non-obvious in this codebase.
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). You'll need a `.env.local` with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+ADMIN_PASSWORD=...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+(`.env.local.example` shows the shape; ask the project owner for real values — the service role key and admin password are secrets and must never be committed or exposed to the client.)
 
-## Learn More
+## Database changes
 
-To learn more about Next.js, take a look at the following resources:
+SQL migrations are **not automated**. `supabase/schema.sql` is the running history of every schema change — new migrations get appended to the bottom of that file, then pasted by hand into the Supabase SQL Editor and run. Nothing in the app verifies the deployed schema matches the code, so any schema change must be applied manually before (or immediately after) deploying code that depends on it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build   # must pass before pushing
+git push         # Vercel auto-deploys the connected branch
+```
 
-## Deploy on Vercel
+There's no test suite or CI — verification is `npm run build` plus a manual check in the browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Admin
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`/admin` is a password-gated page (single shared password via `ADMIN_PASSWORD`, not per-user accounts) for reviewing flagged listings, recovering lost manage links, and deleting listings.

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -205,12 +206,13 @@ export default function ListingDetail() {
       {listing.photo_urls?.length > 0 && (
         <div className="flex gap-1 mt-4 overflow-x-auto">
           {listing.photo_urls.slice(0, 6).map((url, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               key={i}
               src={url}
               alt={`${listing.title} photo ${i + 1}`}
               onClick={() => setLightboxIndex(i)}
+              width={96}
+              height={96}
               className="w-24 h-24 rounded-lg object-cover shrink-0 cursor-zoom-in"
             />
           ))}

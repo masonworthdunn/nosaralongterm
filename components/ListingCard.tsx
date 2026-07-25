@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Listing } from "@/lib/supabase";
 import { areaLabel, timeAgoLabel, type Language, type TranslationKey } from "@/lib/i18n";
 import FavoriteButton from "@/components/FavoriteButton";
@@ -55,11 +56,12 @@ export default function ListingCard({
       {listing.photo_urls?.length > 0 && (
         <div className="flex gap-0.5 p-2 pb-0">
           {listing.photo_urls.slice(0, 6).map((url, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               key={i}
               src={url}
               alt={listing.title}
+              width={56}
+              height={56}
               className="w-14 h-14 rounded-md object-cover shrink-0"
             />
           ))}

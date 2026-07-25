@@ -31,6 +31,12 @@ Single main table, `listings` (see `supabase/schema.sql` for the authoritative d
 
 `listing_edit_tokens` is the second table (see above).
 
+## Photos
+
+`photo_urls` are public Supabase Storage URLs. Every place that renders an *already-uploaded* photo at a fixed thumbnail size (`ListingCard`, the listing detail page's thumbnail strip, `app/admin/page.tsx`, and the edit page's `existingPhotos` preview) uses `next/image`, not a plain `<img>` — this resizes/caches through Next's image optimizer instead of re-serving full-size originals on every pageview, which is the main lever against Supabase's Cached Egress quota (a photo-heavy site can blow through the Free tier's 5GB/mo cached-egress limit in days otherwise, even with tiny total Storage usage, since it's driven by repeated views, not stored bytes). `next.config.ts`'s `images.remotePatterns` allowlists the project's storage hostname — update it if the Supabase project ever changes.
+
+Two exceptions stay as plain `<img>`, deliberately: the submit/edit forms' *unsaved* photo previews (`URL.createObjectURL()` blob URLs — Next's optimizer can't fetch a `blob:` URL, it only exists in that browser tab), and the full-screen lightbox image on the listing detail page (an intentional "view full photo" zoom, low-frequency compared to thumbnails shown on every listing everywhere).
+
 ## Security model — read this before touching RLS or the SQL functions
 
 Anon (public, unauthenticated) clients can:

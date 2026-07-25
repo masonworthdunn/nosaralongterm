@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState, type FormEvent } from "react";
 import { whatsAppLink, type Listing } from "@/lib/supabase";
 
@@ -145,10 +146,11 @@ export default function AdminPage() {
             <div className="flex gap-3">
               <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 {listing.photo_urls?.[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={listing.photo_urls[0]}
                     alt={listing.title}
+                    width={56}
+                    height={56}
                     className="w-full h-full object-cover"
                   />
                 )}
