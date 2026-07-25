@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   supabase,
   type Listing,
@@ -29,6 +29,7 @@ export default function ListingDetail() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [renewing, setRenewing] = useState(false);
   const [renewed, setRenewed] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,6 +74,25 @@ export default function ListingDetail() {
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [lightboxIndex, listing]);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null || !listing) return;
+    const diff = e.changedTouches[0].clientX - touchStartX.current;
+    const threshold = 50;
+
+    if (diff > threshold) {
+      setLightboxIndex((i) => (i !== null && i > 0 ? i - 1 : i));
+    } else if (diff < -threshold) {
+      setLightboxIndex((i) =>
+        i !== null && i < listing.photo_urls.length - 1 ? i + 1 : i
+      );
+    }
+    touchStartX.current = null;
+  }
 
   async function handleFlag() {
     if (!listing) return;
@@ -198,6 +218,8 @@ export default function ListingDetail() {
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={() => setLightboxIndex(null)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <button
             onClick={() => setLightboxIndex(null)}
