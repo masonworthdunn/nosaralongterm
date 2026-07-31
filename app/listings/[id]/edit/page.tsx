@@ -377,11 +377,9 @@ export default function EditListing() {
             <div className="flex gap-2 mb-2 overflow-x-auto">
               {existingPhotos.map((url, i) => (
                 <div key={`existing-${i}`} className="relative shrink-0">
-                  <Image
+                  <img
                     src={url}
                     alt={`Existing photo ${i + 1}`}
-                    width={64}
-                    height={64}
                     className="w-16 h-16 rounded-md object-cover"
                   />
                   <button
