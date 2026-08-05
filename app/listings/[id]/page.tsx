@@ -213,6 +213,7 @@ export default function ListingDetail() {
               onClick={() => setLightboxIndex(i)}
               width={96}
               height={96}
+              unoptimized
               className="w-24 h-24 rounded-lg object-cover shrink-0 cursor-zoom-in"
             />
           ))}

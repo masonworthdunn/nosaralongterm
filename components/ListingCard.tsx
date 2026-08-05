@@ -62,6 +62,7 @@ export default function ListingCard({
               alt={listing.title}
               width={56}
               height={56}
+              unoptimized
               className="w-14 h-14 rounded-md object-cover shrink-0"
             />
           ))}

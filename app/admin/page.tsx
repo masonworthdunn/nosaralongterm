@@ -151,6 +151,7 @@ export default function AdminPage() {
                     alt={listing.title}
                     width={56}
                     height={56}
+                    unoptimized
                     className="w-full h-full object-cover"
                   />
                 )}
