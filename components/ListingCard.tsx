@@ -56,10 +56,12 @@ export default function ListingCard({
       {listing.photo_urls?.length > 0 && (
         <div className="flex gap-0.5 p-2 pb-0">
           {listing.photo_urls.slice(0, 6).map((url, i) => (
-            <img
+            <Image
               key={i}
               src={url}
               alt={listing.title}
+              width={56}
+              height={56}
               className="w-14 h-14 rounded-md object-cover shrink-0"
             />
           ))}

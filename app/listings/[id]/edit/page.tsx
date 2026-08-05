@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { compressImage } from "@/lib/compressImage";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import {
@@ -141,12 +142,12 @@ export default function EditListing() {
     if (newPhotos.length > 0) {
       setUploadingPhotos(true);
       for (const photo of newPhotos) {
-        const ext = photo.file.name.split(".").pop() || "jpg";
-        const path = `${crypto.randomUUID()}.${ext}`;
+        const path = `${crypto.randomUUID()}.jpg`;
+        const compressed = await compressImage(photo.file);
 
         const { error: uploadError } = await supabase.storage
           .from("listing-photos")
-          .upload(path, photo.file);
+          .upload(path, compressed, { contentType: 'image/jpeg' });
 
         if (uploadError) {
           setUploadingPhotos(false);
@@ -377,9 +378,11 @@ export default function EditListing() {
             <div className="flex gap-2 mb-2 overflow-x-auto">
               {existingPhotos.map((url, i) => (
                 <div key={`existing-${i}`} className="relative shrink-0">
-                  <img
+                  <Image
                     src={url}
                     alt={`Existing photo ${i + 1}`}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-md object-cover"
                   />
                   <button

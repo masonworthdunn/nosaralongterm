@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import { compressImage } from "@/lib/compressImage";
 import {
   supabase,
   AREAS,
@@ -107,12 +108,12 @@ export default function SubmitListing() {
     if (photos.length > 0) {
       setUploadingPhotos(true);
       for (const photo of photos) {
-        const ext = photo.file.name.split(".").pop() || "jpg";
-        const path = `${crypto.randomUUID()}.${ext}`;
+        const path = `${crypto.randomUUID()}.jpg`;
+        const compressed = await compressImage(photo.file);
 
         const { error: uploadError } = await supabase.storage
           .from("listing-photos")
-          .upload(path, photo.file);
+          .upload(path, compressed, { contentType: 'image/jpeg' });
 
         if (uploadError) {
           setUploadingPhotos(false);
